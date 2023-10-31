@@ -1,0 +1,9 @@
+*
+!input/
+!input/*
+!.gitignore
+!instagram.py
+!Readme.md
+!requirements.txt
+!setup_credentials.py
+!youtube.py
