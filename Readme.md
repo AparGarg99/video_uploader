@@ -13,7 +13,7 @@ cd <project path>
 
 4. Create new anaconda environment
 ```
-conda create -n "video_uploader" python==3.7.6
+conda create -n "video_uploader" python==3.8.0
 ```
 
 5. Activate anaconda environment
@@ -50,15 +50,14 @@ pip install -r requirements.txt
 
 11. Put `client_secrets.json` file inside project
 
-12. Download `[settings.yaml](https://github.com/pyGuru123/Youtube/blob/main/Google%20Services%20with%20Python/Google%20OAuth%202.0/settings.yaml)` file
+12. Download [`settings.yaml`](https://github.com/pyGuru123/Youtube/blob/main/Google%20Services%20with%20Python/Google%20OAuth%202.0/settings.yaml) file
 
 12. Copy "client_id" and "client_secret" from `client_secrets.json` and paste in `settings.yaml` file
 
-13. Create oauth client secret file
+13. Create `credentials.json` (oauth client secret) file by executing
 ```
 python setup_credentials.py
 ```
-This will create a `credentials.json` file
 
 14. Download and unzip [chrome-binary](https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/win64/chrome-win64.zip) and [edge-binary](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) folders.
 
