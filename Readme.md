@@ -31,20 +31,26 @@ conda install -c anaconda spyder
 pip install -r requirements.txt
 ```
 
-8. Go to Google Cloud Console -> Create new project -> Search "Google Drive API" -> Enable -> Manage
+8. Go to Google Cloud Console 
+    * **Create new project**
+    ```
+    Create new project -> Search "Google Drive API" -> Enable -> Manage
+    ```
 
-9. Create OAuth Consent Screen
-```
-Credentials -> Configure Consent screen -> External -> Create -> Fill "App information" (App name must be same as project name) & "Developer contact information" sections -> Save and Continue ->
-Save and Continue -> Save and Continue -> Back to Dashboard -> Publish App
-```
+    * **Create OAuth Consent Screen**
+    ```
+    Credentials -> Configure Consent screen -> External -> Create -> Fill "App information" (App name must be same as project name) & "Developer contact information" sections -> Save and Continue ->
+    Save and Continue -> Save and Continue -> Back to Dashboard -> Publish App
+    ```
 
-10. Create OAuth Client ID
-```
-Credentials -> OAuth Client ID -> Select 'Application type' to be Web application. -> Enter an appropriate name -> Input http://localhost:8080 for 'Authorized JavaScript origins' -> Input http://localhost:8080/ for 'Authorized redirect URIs' -> Create -> Download `client_secrets.json`
-```
+    * **Create OAuth Client ID**
+    ```
+    Credentials -> OAuth Client ID -> Select 'Application type' to be Web application. -> Enter an appropriate name -> Input http://localhost:8080 for 'Authorized JavaScript origins' -> Input http://localhost:8080/ for 'Authorized redirect URIs' -> Create -> Download `client_secrets.json`
+    ```
 
 11. Put `client_secrets.json` file inside project
+
+12. Download `[settings.yaml](https://github.com/pyGuru123/Youtube/blob/main/Google%20Services%20with%20Python/Google%20OAuth%202.0/settings.yaml)` file
 
 12. Copy "client_id" and "client_secret" from `client_secrets.json` and paste in `settings.yaml` file
 
@@ -54,7 +60,7 @@ python setup_credentials.py
 ```
 This will create a `credentials.json` file
 
-14. Download and unzip [chrome-binary](https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/win64/chrome-win64.zip) folder. Place it inside `utils` folder.
+14. Download and unzip [chrome-binary](https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/win64/chrome-win64.zip) and [edge-binary](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) folders.
 
 # Usage
 
