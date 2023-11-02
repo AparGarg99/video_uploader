@@ -10,17 +10,19 @@ from pynput.keyboard import Key, Controller
 from selenium.webdriver.common.by import By
 from tqdm import tqdm
 import pandas as pd
-from msedge.selenium_tools import Edge, EdgeOptions
+#from msedge.selenium_tools import Edge, EdgeOptions
 import random
 import time
+from selenium import webdriver
+
 
 #%%
 
 #################### User input ####################
-min_wait_time = 8
-max_wait_time = 10
+min_wait_time = 5
+max_wait_time = 7
 
-videos_per_account = 2
+videos_per_account = 1
 
 #################### File paths ####################
 curr_date = date.today().strftime("%d-%m-%Y")
@@ -29,7 +31,7 @@ PATH_DICT = {
     'PROJECT_DIR': CURRENT_FOLDER,
     
     'ORIGINAL_VIDEO_DIR': os.path.join(CURRENT_FOLDER, 'input', 'videos'),
-    'ACCOUNT_FILE': os.path.join(CURRENT_FOLDER, 'input', 'gmail_accounts_3.csv'),
+    'ACCOUNT_FILE': os.path.join(CURRENT_FOLDER, 'input', 'gmail_accounts_5.csv'),
     'VIDEO_METADATA_FILE': os.path.join(CURRENT_FOLDER, 'input', 'video_metadata.csv'),
     
     'OUTPUT_DIR':  os.path.join(CURRENT_FOLDER, f'output_{curr_date}'),
@@ -40,33 +42,38 @@ PATH_DICT = {
 
 # open edge browser
 # https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
-def open_browser(executable_path, headless=False, user_agent=None, proxy=None, download_directory=None):
-    options = EdgeOptions()
-    options.use_chromium = True
+# def open_browser(executable_path, headless=False, user_agent=None, proxy=None, download_directory=None):
+#     options = EdgeOptions()
+#     options.use_chromium = True
     
-    options.add_argument("--window-size=1920,1080")
-    #options.add_argument("--start-minimized")  # Add this line to start in minimized mode
-    #options.add_argument("--disable-extensions") # Disable Chrome extensions
-    #options.add_argument('--disable-notifications') # Disable Chrome notifications
-    #options.add_argument("--mute-audio") # Mute system audio
-    #options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
-    #options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    options.add_argument("--incognito")  # Start Chrome in incognito mode
-    #options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
+#     options.add_argument("--window-size=1920,1080")
+#     #options.add_argument("--start-minimized")  # Add this line to start in minimized mode
+#     #options.add_argument("--disable-extensions") # Disable Chrome extensions
+#     #options.add_argument('--disable-notifications') # Disable Chrome notifications
+#     #options.add_argument("--mute-audio") # Mute system audio
+#     #options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
+#     #options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
+#     options.add_argument("--incognito")  # Start Chrome in incognito mode
+#     #options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     
-    if headless:
-        options.add_argument("--headless")
-    if user_agent:
-        #user_agent = UserAgent()['google chrome']
-        options.add_argument(f"--user-agent={user_agent}")
-    if proxy:
-        options.add_argument(f"--proxy-server={proxy}")
-    if download_directory:
-        preferences = {"download.default_directory": download_directory}
-        options.add_experimental_option("prefs", preferences)
+#     if headless:
+#         options.add_argument("--headless")
+#     if user_agent:
+#         #user_agent = UserAgent()['google chrome']
+#         options.add_argument(f"--user-agent={user_agent}")
+#     if proxy:
+#         options.add_argument(f"--proxy-server={proxy}")
+#     if download_directory:
+#         preferences = {"download.default_directory": download_directory}
+#         options.add_experimental_option("prefs", preferences)
     
-    driver = Edge(executable_path = executable_path, options = options)
+#     driver = Edge(executable_path = executable_path, options = options)
     
+#     return driver
+
+
+def open_browser(executable_path):
+    driver = webdriver.Edge(executable_path = executable_path)
     return driver
 
 
@@ -157,6 +164,14 @@ def go_to_homepage():
    
     # wait to load
     random_time_delay(min_wait_time, max_wait_time)
+    
+    # Skip turn on notifications page (if appears)
+    for _ in range(4):
+        try:
+            driver.find_element(By.XPATH, "//*[text()='Not Now']").click()
+            random_time_delay(min_wait_time, max_wait_time)
+        except:
+            pass
 
 
 
@@ -180,12 +195,8 @@ def login(email_id, password):
         # wait to load
         random_time_delay(min_wait_time, max_wait_time)
         
-        # Skip suggestions page (if appears)
-        try:
-            driver.find_element(By.XPATH, "//*[text()='Not Now']").click()
-            random_time_delay(min_wait_time, max_wait_time)
-        except:
-            pass
+        # go to homepage
+        go_to_homepage()
         
         return True
 
@@ -226,7 +237,7 @@ def select_file(video_path):
         keyboard.release(Key.enter)
         
         # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
+        random_time_delay(min_wait_time*2, max_wait_time*2)
         
         return True
     
@@ -238,12 +249,16 @@ def select_file(video_path):
 
 def upload_video(captions):
     try:
-        driver.find_element(By.XPATH, "//*[text()='OK']").click()
+        # Info box - Video posts are now shared as reels
+        try:
+            driver.find_element(By.XPATH, "//*[text()='OK']").click()
+            random_time_delay(min_wait_time, max_wait_time)
+        except:
+            pass
         
         # Click on 'Next' button to go to next page
         for _ in range(2):
             driver.find_element(By.XPATH, "//*[text()='Next']").click()
-            
             random_time_delay(min_wait_time, max_wait_time)
 
         # Input captions
@@ -252,9 +267,15 @@ def upload_video(captions):
         # Publish video
         driver.find_element(By.XPATH, "//*[text()='Share']").click()
         
-        # wait to load
-        random_time_delay(min_wait_time*2, max_wait_time*2)
-        
+        # wait until reel is shared
+        while True:
+            try:
+                driver.find_element(By.XPATH, "//*[text()='Reel shared']")
+                break
+            except:
+                random_time_delay(min_wait_time, max_wait_time)
+                pass
+            
         return True
     
     except Exception as e:
@@ -268,22 +289,22 @@ def logout():
         # go to homepage
         go_to_homepage()
         
-        # click on user profile button
-        driver.find_element(By.CSS_SELECTOR, 'button[id="avatar-btn"]').click()
+        # click on 'Settings' button
+        driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Settings').click()
         
         # wait to load
         random_time_delay(min_wait_time, max_wait_time)
         
         # click on 'Sign out'
-        driver.find_element(By.LINK_TEXT, 'Sign out').click()
-        
+        driver.find_element(By.XPATH, "//*[text()='Log out']").click()
+                
         # wait to load
         random_time_delay(min_wait_time, max_wait_time)
         
         return True
     
     except Exception as e:
-        #print("Logout Error - ", str(e))
+        print("Logout Error - ", str(e))
         return False
 
 
@@ -320,7 +341,8 @@ if __name__=='__main__':
                 
                 # open browser again
                 driver = open_browser(executable_path = os.path.join(PATH_DICT['PROJECT_DIR'], "edgedriver_win64", "msedgedriver.exe"),
-                                    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36')
+                                    #user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36'
+                                    )
                 
                 # try login - can be successful or failed
                 login_status = login(row['email_id'], row['password'])
@@ -344,7 +366,7 @@ if __name__=='__main__':
                 
                 select_file_status = select_file(os.path.join(PATH_DICT['ORIGINAL_VIDEO_DIR'], row['filename']+'.mp4'))
     
-                upload_status = upload_video(title=row['title'], description=row['description'], tags=row['tags'])
+                upload_status = upload_video(captions=row['title'])
                 
                 df_task.at[i, 'login_status'] = login_status
                 df_task.at[i, 'go_to_upload_page_status'] = go_to_upload_page_status

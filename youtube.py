@@ -52,12 +52,12 @@ def open_browser(chrome_binary_path="chrome-win64/chrome.exe", driver_version='1
     
     chrome_options.add_argument("--window-size=1920,1080")
     #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
-    #chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
+    chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
     #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
-    #chrome_options.add_argument("--mute-audio") # Mute system audio
+    chrome_options.add_argument("--mute-audio") # Mute system audio
     #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    #chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
+    chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     
     if headless:
