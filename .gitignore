@@ -1,0 +1,15 @@
+!input/
+!input/*
+!.gitignore
+!instagram.py
+!Readme.md
+!requirements.txt
+!setup_credentials.py
+!youtube.py
+/venv/
+/output*
+/input*
+/chrome*
+.DS_store
+.settings
+launch.json
