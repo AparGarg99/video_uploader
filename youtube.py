@@ -49,7 +49,7 @@ def open_browser(chrome_binary_path="/Applications/Google Chrome.app/Contents/Ma
     chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
     
     chrome_options = uc.ChromeOptions()
-    chrome_options.binary_location = chrome_binary_path
+    # chrome_options.binary_location = chrome_binary_path
     
     chrome_options.add_argument("--window-size=1920,1080")
     #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
