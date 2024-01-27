@@ -1,5 +1,5 @@
 import os
-CURRENT_FOLDER = r'C:\Users\apar\Desktop\oprahfx'
+CURRENT_FOLDER = r'./oprahfx'
 os.chdir(CURRENT_FOLDER)
 
 from pydrive.auth import GoogleAuth

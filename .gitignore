@@ -1,5 +1,5 @@
-!input/
-!input/*
+# !input/
+# !input/*
 !.gitignore
 !instagram.py
 !Readme.md
@@ -8,8 +8,10 @@
 !youtube.py
 /venv/
 /output*
-/input*
+/input/videos
+# /input*
 /chrome*
 .DS_store
 .settings
 launch.json
+/youtube

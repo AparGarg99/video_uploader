@@ -45,7 +45,7 @@ PATH_DICT = {
 
 # open chrome browser
 # Chrome browsers for Testing - c
-def open_browser(chrome_binary_path="./chrome", driver_version='118', headless=False, user_agent=None, proxy=None, download_directory=None):
+def open_browser(chrome_binary_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", driver_version='120.0.6099.234', headless=False, user_agent=None, proxy=None, download_directory=None):
     chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
     
     chrome_options = uc.ChromeOptions()
@@ -381,8 +381,8 @@ if __name__=='__main__':
                     pass
                 
                 # open browser again
-                driver = open_browser(chrome_binary_path = os.path.join(PATH_DICT['PROJECT_DIR'], 'chrome-win64', 'chrome.exe'),
-                                    driver_version = '118',
+                driver = open_browser(chrome_binary_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+                                    driver_version = '120.0.6099.234',
                                     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36')
                 
                 # try login - can be successful or failed
