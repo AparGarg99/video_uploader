@@ -21,7 +21,7 @@ import random
 #%%
 
 #################### User input ####################
-min_wait_time = 8
+min_wait_time = 6
 max_wait_time = 10
 
 videos_per_account = 2
@@ -33,7 +33,7 @@ PATH_DICT = {
     'PROJECT_DIR': CURRENT_FOLDER,
     
     'ORIGINAL_VIDEO_DIR': os.path.join(CURRENT_FOLDER, 'input', 'videos'),
-    'ACCOUNT_FILE': os.path.join(CURRENT_FOLDER, 'input', 'gmail_accounts_3.csv'),
+    'ACCOUNT_FILE': os.path.join(CURRENT_FOLDER, 'input', 'gmail_accounts_6.csv'),
     'VIDEO_METADATA_FILE': os.path.join(CURRENT_FOLDER, 'input', 'video_metadata.csv'),
     
     'OUTPUT_DIR':  os.path.join(CURRENT_FOLDER, f'output_{curr_date}'),
