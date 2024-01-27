@@ -45,7 +45,7 @@ PATH_DICT = {
 
 # open chrome browser
 # Chrome browsers for Testing - c
-def open_browser(chrome_binary_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", driver_version='120.0.6099.234', headless=False, user_agent=None, proxy=None, download_directory=None):
+def open_browser(chrome_binary_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", driver_version='120.0.6099.234', headless=True, user_agent=None, proxy=None, download_directory=None):
     chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
     
     chrome_options = uc.ChromeOptions()
