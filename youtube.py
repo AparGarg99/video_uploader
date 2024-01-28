@@ -33,7 +33,7 @@ PATH_DICT = {
     'PROJECT_DIR': CURRENT_FOLDER,
     
     'ORIGINAL_VIDEO_DIR': os.path.join(CURRENT_FOLDER, 'input', 'videos'),
-    'ACCOUNT_FILE': os.path.join(CURRENT_FOLDER, 'input', 'gmail_accounts_6.csv'),
+    'ACCOUNT_FILE': os.path.join(CURRENT_FOLDER, 'input', 'gmail_accounts_7.csv'),
     'VIDEO_METADATA_FILE': os.path.join(CURRENT_FOLDER, 'input', 'video_metadata.csv'),
     
     'OUTPUT_DIR':  os.path.join(CURRENT_FOLDER, f'output_{curr_date}'),
@@ -238,20 +238,20 @@ def go_to_upload_page():
 
 def select_file(video_path):
     try:
+        absolute_path = os.path.abspath(video_path)
         # Click on 'Select files' button to choose files from desktop
-        driver.find_element(By.CSS_SELECTOR, 'ytcp-button[id="select-files-button"]').click()
-        
+        driver.find_element(By.CSS_SELECTOR, "input[type='file']").send_keys(absolute_path)
         # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
+        random_time_delay(min_wait_time, 30)
     
         # Simulate keyboard to input filepath and press 'Enter'
-        keyboard = Controller()
-        keyboard.type(video_path)
-        keyboard.press(Key.enter)
-        keyboard.release(Key.enter)
+        # keyboard = Controller()
+        # keyboard.type(absolute_path)
+        # keyboard.press(Key.enter)
+        # keyboard.release(Key.enter)
         
         # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
+        random_time_delay(25, 60)
         
         return True
     
@@ -264,13 +264,15 @@ def select_file(video_path):
 def upload_video(title, description, tags):
     try:
         # Input video title
-        (driver.find_element(By.CSS_SELECTOR, 'div[aria-label*="Add a title"]').clear()).send_keys(title)
+        driver.find_element(By.CSS_SELECTOR, 'div[aria-label*="Add a title"]').clear()
+        driver.find_element(By.CSS_SELECTOR, 'div[aria-label*="Add a title"]').send_keys(title)
         
         # wait to load
         #random_time_delay(min_wait_time, max_wait_time)
         
         # Input video descrition
-        (driver.find_element(By.CSS_SELECTOR, 'div[aria-label*="Tell viewers"]').clear()).send_keys(description)
+        driver.find_element(By.CSS_SELECTOR, 'div[aria-label*="Tell viewers"]').clear()
+        driver.find_element(By.CSS_SELECTOR, 'div[aria-label*="Tell viewers"]').send_keys(description)
         
         
         # wait to load
@@ -289,7 +291,8 @@ def upload_video(title, description, tags):
         random_time_delay(min_wait_time, max_wait_time)
         
         # Input video tags
-        (driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Tags"]').send_keys(tags)).send_keys(Keys.ENTER)
+        driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Tags"]').send_keys(tags)
+        driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Tags"]').send_keys(Keys.ENTER)
         
         # wait to load
         random_time_delay(min_wait_time, max_wait_time)
