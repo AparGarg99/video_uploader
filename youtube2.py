@@ -564,10 +564,14 @@ if __name__=='__main__':
     nerrors = 0
     current_login = ''
     file_path = None
+    user_info = get_and_update_user()
+    video_info = fetch_video()
+    email = user_info['email']
+    video_url = video_info['url']
+    user_videos_uploaded = user_info['videos_uploaded']
     while True:
         try:
-            user_info = get_and_update_user()
-            video_info = fetch_video()
+
             if user_info is None:
                 print("No user available")
             elif video_info is None:
@@ -630,7 +634,8 @@ if __name__=='__main__':
                     update_user_video_count(email,user_videos_uploaded)
 
         except Exception as e:
-            pass
+            update_is_processed(video_url,'NOT PROCESSED')
+            update_user_video_count(email,user_videos_uploaded)
         finally:
             try:
                 os.remove(file_path)
