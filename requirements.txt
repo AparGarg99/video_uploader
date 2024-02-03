@@ -7,3 +7,4 @@ undetected-chromedriver==3.5.3
 selenium==4.11.2
 urllib3==1.26.13
 psycopg2==2.9.9
+SQLAlchemy==2.0.25
