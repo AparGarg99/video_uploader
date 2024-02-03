@@ -635,6 +635,6 @@ if __name__=='__main__':
             try:
                 os.remove(file_path)
                 print(f"File '{file_path}' deleted successfully.")
-            except OSError as e:
+            except Exception as e:
                 print(f"Error deleting file '{file_path}': {e}")
             random_time_delay(min_wait_time, max_wait_time)
