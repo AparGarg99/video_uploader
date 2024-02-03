@@ -5,6 +5,10 @@ import uuid
 # CURRENT_FOLDER = r'C:\Users\apar\Desktop\oprahfx'
 CURRENT_FOLDER = './'
 os.chdir(CURRENT_FOLDER)
+import subprocess
+
+command = "Xvfb :99 -screen 0 1024x768x16 &"
+subprocess.run(command, shell=True)
 
 from datetime import date
 from pydrive.auth import GoogleAuth
