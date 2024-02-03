@@ -572,7 +572,10 @@ if __name__=='__main__':
     while True:
         try:
             user_info = get_and_update_user()
-            video_info = fetch_video()
+            video_info = None
+            if user_info:
+                video_info = fetch_video()
+
             if user_info is None:
                 print("No user available")
             elif video_info is None:
