@@ -8,7 +8,7 @@ os.chdir(CURRENT_FOLDER)
 # import subprocess
 
 # command = "Xvfb :99 -screen 0 1024x768x16 &"
-subprocess.run(command, shell=True)
+# subprocess.run(command, shell=True)
 
 from datetime import date
 from pydrive.auth import GoogleAuth
