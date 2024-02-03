@@ -226,7 +226,7 @@ def open_browser(chrome_binary_path="/Applications/Google Chrome.app/Contents/Ma
     chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
     
     chrome_options = uc.ChromeOptions()
-    chrome_options.binary_location = chrome_binary_path
+    # chrome_options.binary_location = chrome_binary_path
     
     chrome_options.add_argument("--window-size=1920,1080")
     #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
@@ -546,7 +546,8 @@ def logout():
         #print("Logout Error - ", str(e))
         return False
 
-
+def check_file_exists(file_path):
+    return os.path.exists(file_path)
 #%%
 if __name__=='__main__':
     
@@ -564,14 +565,14 @@ if __name__=='__main__':
     nerrors = 0
     current_login = ''
     file_path = None
-    user_info = get_and_update_user()
-    video_info = fetch_video()
-    email = user_info['email']
-    video_url = video_info['url']
-    user_videos_uploaded = user_info['videos_uploaded']
+
+    # email = user_info['email']
+    # video_url = video_info['url']
+    # user_videos_uploaded = user_info['videos_uploaded']
     while True:
         try:
-
+            user_info = get_and_update_user()
+            video_info = fetch_video()
             if user_info is None:
                 print("No user available")
             elif video_info is None:
@@ -590,7 +591,8 @@ if __name__=='__main__':
                 file_path = output_filepath
                 # Update it to downloading
                 update_is_processed(video_url)
-                download_video(video_url, output_filepath)
+                if not check_file_exists(output_filepath):
+                    download_video(video_url, output_filepath)
                 if email != current_login:
                     logout_status = logout()
                     try:
