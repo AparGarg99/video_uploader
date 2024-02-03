@@ -6,7 +6,7 @@ import uuid
 CURRENT_FOLDER = './'
 os.chdir(CURRENT_FOLDER)
 # import subprocess
-
+os.environ['DISPLAY'] = ':99'
 # command = "Xvfb :99 -screen 0 1024x768x16 &"
 # subprocess.run(command, shell=True)
 
