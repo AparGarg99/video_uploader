@@ -586,7 +586,7 @@ if __name__=='__main__':
                 file_path = output_filepath
                 # Update it to downloading
                 update_is_processed(video_url)
-                # download_video(video_url, output_filepath)
+                download_video(video_url, output_filepath)
                 if email != current_login:
                     logout_status = logout()
                     try:
