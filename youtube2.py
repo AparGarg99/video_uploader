@@ -591,7 +591,7 @@ if __name__=='__main__':
                 user_videos_uploaded = user_info['videos_uploaded']
                 title = video_info['title']
                 description = video_info['description']
-                tags = video_info['tags']
+                tags = ','.join(video_info['tags'].split(",")[:10])
                 is_processed = video_info['is_processed']
                 video_url = video_info['url']
                 file_name = extract_file_id(video_url)
