@@ -642,10 +642,18 @@ if __name__=='__main__':
                 else:
                     update_is_processed(video_url,'NOT PROCESSED')
                     update_user_video_count(email,user_videos_uploaded)
+                try:
+                    driver.quit()
+                except:
+                    pass
 
         except Exception as e:
             update_is_processed(video_url,'NOT PROCESSED')
             update_user_video_count(email,user_videos_uploaded)
+            try:
+                driver.quit()
+            except:
+                pass
         finally:
             try:
                 os.remove(file_path)
