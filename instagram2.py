@@ -8,16 +8,18 @@ os.chdir(CURRENT_FOLDER)
 from datetime import date, datetime
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from pynput.keyboard import Key, Controller
 from selenium.webdriver.common.by import By
-from tqdm import tqdm
 import pandas as pd
-#from msedge.selenium_tools import Edge, EdgeOptions
 import random
 import time
 from selenium import webdriver
 import psycopg2
 from psycopg2 import pool
+
+import undetected_chromedriver as uc
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
+from fake_useragent import UserAgent
 
 #%%
 
@@ -83,10 +85,40 @@ db_params = {
 #     return driver
 
 
-def open_browser(executable_path):
-    driver = webdriver.Edge()
-    return driver
+# def open_browser(executable_path):
+#     driver = webdriver.Edge()
+#     return driver
 
+def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):
+    chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
+    
+    chrome_options = uc.ChromeOptions()
+    # chrome_options.binary_location = chrome_binary_path
+    
+    chrome_options.add_argument("--window-size=1920,1080")
+    #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
+    chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
+    #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
+    chrome_options.add_argument("--mute-audio") # Mute system audio
+    #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
+    #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
+    chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
+    #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
+    
+    if headless:
+        chrome_options.add_argument("--headless")
+    if user_agent:
+        user_agent = UserAgent(min_percentage=1.2, os='linux').random
+        chrome_options.add_argument(f'user-agent={user_agent}')
+    if proxy:
+        chrome_options.add_argument(f"--proxy-server={proxy}")
+    if download_directory:
+        preferences = {"download.default_directory": download_directory}
+        chrome_options.add_experimental_option("prefs", preferences)
+    
+    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+    
+    return driver
 
 
 # random time delay between requests (anti-blocking technique)
@@ -169,9 +201,10 @@ def generate_task_df(df_account, df_video, n=3):
 
 
 
-def go_to_homepage():
+def go_to_homepage(driver):
     # go to homepage
     driver.get("https://www.instagram.com")
+    # driver.get("https://fingerprint.com/")
    
     # wait to load
     random_time_delay(min_wait_time, max_wait_time)
@@ -186,13 +219,13 @@ def go_to_homepage():
 
 
 
-def login(email_id, password):
+def login(driver, email_id, password):
     try:
         # We need this when we work with multiple accounts 
         driver.delete_all_cookies()
         
         # go to homepage
-        go_to_homepage()
+        go_to_homepage(driver)
        
         # Locate the email input field and enter your email
         driver.find_element(By.NAME, "username").send_keys(email_id)
@@ -207,7 +240,7 @@ def login(email_id, password):
         random_time_delay(min_wait_time, max_wait_time)
         
         # go to homepage
-        go_to_homepage()
+        go_to_homepage(driver)
         
         return True
 
@@ -235,6 +268,7 @@ def go_to_upload_page():
 
 def select_file(video_path):
     try:
+        absolute_path = os.path.abspath(video_path)
         # Click on 'Select files' button to choose files from desktop
         driver.find_element(By.CSS_SELECTOR, "input[type='file']").send_keys(absolute_path)
         
@@ -289,10 +323,10 @@ def upload_video(captions):
 
 
 
-def logout():
+def logout(driver):
     try:
         # go to homepage
-        go_to_homepage()
+        go_to_homepage(driver)
         
         # click on 'Settings' button
         driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Settings').click()
@@ -484,9 +518,10 @@ if __name__=='__main__':
     for key, val in PATH_DICT.items():
         if 'DIR' in key:
             os.makedirs(val, exist_ok=True)
-    current_login = ''
+
     while True:
         try:
+            current_login = ''
             user_info = get_and_update_user()
             video_info = None
             if user_info:
@@ -513,22 +548,23 @@ if __name__=='__main__':
                 if not check_file_exists(output_filepath):
                     download_video(video_url, output_filepath)
                 if email != current_login:
-                    logout_status = logout()
+
                     try:
+                        logout_status = logout(driver)
                         driver.quit()
                     except:
                         pass
 
-                    driver = open_browser(executable_path = os.path.join(PATH_DICT['PROJECT_DIR'], "edgedriver_win64", "msedgedriver.exe"))
+                    driver = open_browser()
                     # try login - can be successful or failed
-                    login_status = login(email, password)
+                    login_status = login(driver, email, password)
                     current_login = email
 
                 # If encountered account before, then
                 else:
                     # If login to account was successful, go to homepage
                     if login_status:
-                        go_to_homepage()
+                        go_to_homepage(driver)
 
                     # If login to account was failed, then skip task
                     else:
@@ -540,7 +576,7 @@ if __name__=='__main__':
                     
                     select_file_status = select_file(os.path.join(PATH_DICT['ORIGINAL_VIDEO_DIR'], file_name+'.mp4'))
 
-                    upload_status = upload_video(title=title, description=description, tags=tags)
+                    upload_status = upload_video(captions=title)
                     if upload_status:
                         update_is_processed(video_url,'DONE')
                         update_user_video_count(email,user_videos_uploaded+1)
