@@ -15,12 +15,10 @@ import time
 from selenium import webdriver
 import psycopg2
 from psycopg2 import pool
-
 import undetected_chromedriver as uc
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from fake_useragent import UserAgent
-
 #%%
 
 #################### User input ####################
@@ -53,41 +51,6 @@ db_params = {
 
 #%%
 
-# open edge browser
-# https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
-# def open_browser(executable_path, headless=False, user_agent=None, proxy=None, download_directory=None):
-#     options = EdgeOptions()
-#     options.use_chromium = True
-    
-#     options.add_argument("--window-size=1920,1080")
-#     #options.add_argument("--start-minimized")  # Add this line to start in minimized mode
-#     #options.add_argument("--disable-extensions") # Disable Chrome extensions
-#     #options.add_argument('--disable-notifications') # Disable Chrome notifications
-#     #options.add_argument("--mute-audio") # Mute system audio
-#     #options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
-#     #options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-#     options.add_argument("--incognito")  # Start Chrome in incognito mode
-#     #options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
-    
-#     if headless:
-#         options.add_argument("--headless")
-#     if user_agent:
-#         #user_agent = UserAgent()['google chrome']
-#         options.add_argument(f"--user-agent={user_agent}")
-#     if proxy:
-#         options.add_argument(f"--proxy-server={proxy}")
-#     if download_directory:
-#         preferences = {"download.default_directory": download_directory}
-#         options.add_experimental_option("prefs", preferences)
-    
-#     driver = Edge(executable_path = executable_path, options = options)
-    
-#     return driver
-
-
-# def open_browser(executable_path):
-#     driver = webdriver.Edge()
-#     return driver
 
 def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):
     chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
@@ -97,12 +60,12 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
     
     chrome_options.add_argument("--window-size=1920,1080")
     #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
-    chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
+    # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
     #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
     chrome_options.add_argument("--mute-audio") # Mute system audio
     #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
+    # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     
     if headless:
@@ -111,7 +74,7 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
         user_agent = UserAgent(min_percentage=1.2, os='linux').random
         chrome_options.add_argument(f'user-agent={user_agent}')
     if proxy:
-        chrome_options.add_argument(f"--proxy-server={proxy}")
+        chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
@@ -125,22 +88,6 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
 def random_time_delay(start=10, end=20):
     time.sleep(random.uniform(start, end))
     
-
-
-def load_credentials_df():
-    df = pd.read_csv(PATH_DICT['ACCOUNT_FILE'])
-    df.columns = ['email_id', 'password']
-    return df.reset_index(drop=True)
-
-
-
-def load_video_df():
-    df = pd.read_csv(PATH_DICT['VIDEO_METADATA_FILE'])
-    df['filename'] = df['url'].apply(lambda x: x.split("/")[-2])
-    df['tags'] = df['tags'].apply(lambda x: ", ".join(x.split(", ")[:10]))
-    df['download_status'] = False
-    return df.reset_index(drop=True)
-
 
 
 def download_video(gdrive_file_url, output_filename):
@@ -163,49 +110,10 @@ def download_video(gdrive_file_url, output_filename):
         print("Video download failed - ", str(e))
         return False
 
-
-
-def download_video_df(df):
-    for i, row in tqdm(df.iterrows(), total=df.shape[0]):
-        output_filepath = os.path.join(PATH_DICT['ORIGINAL_VIDEO_DIR'], row['filename']+'.mp4')
-        if not os.path.exists(output_filepath):
-            status = download_video(row['url'], output_filepath)
-            df.at[i, 'download_status'] = status
-        else:
-            df.at[i, 'download_status'] = True
-        
-    return df.reset_index(drop=True)
-
-
-
-def generate_task_df(df_account, df_video, n=3):
-    df = []
-    for _, row in df_account.iterrows():
-        combined_rows = pd.concat([row] * n, ignore_index=True, axis=1).T
-        
-        random_rows = df_video.sample(n = n, ignore_index=True)
-        
-        combined_rows = pd.concat([combined_rows, random_rows], axis=1, ignore_index=True)
-        
-        df.append(combined_rows)
-        
-    df = pd.concat(df)
-    df.columns = list(df_account.columns) + list(df_video.columns)
-    
-    df['login_status'] = False
-    df['go_to_upload_page_status'] = False
-    df['select_file_status'] = False
-    df['upload_status'] = False
-    
-    return df.reset_index(drop=True)
-
-
-
 def go_to_homepage(driver):
     # go to homepage
     driver.get("https://www.instagram.com")
-    # driver.get("https://fingerprint.com/")
-   
+
     # wait to load
     random_time_delay(min_wait_time, max_wait_time)
     
@@ -217,8 +125,6 @@ def go_to_homepage(driver):
         except:
             pass
 
-
-
 def login(driver, email_id, password):
     try:
         # We need this when we work with multiple accounts 
@@ -226,16 +132,16 @@ def login(driver, email_id, password):
         
         # go to homepage
         go_to_homepage(driver)
-       
+
         # Locate the email input field and enter your email
         driver.find_element(By.NAME, "username").send_keys(email_id)
-       
+
         # Locate the password input field and enter your password
         driver.find_element(By.NAME, "password").send_keys(password)
-       
+
         # Click the "Next" button to log in
         driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
-       
+
         # wait to load
         random_time_delay(min_wait_time, max_wait_time)
         
@@ -248,7 +154,6 @@ def login(driver, email_id, password):
         print("Login Error - ", str(e))
         return False
     
-
 
 def go_to_upload_page():
     try:
@@ -263,7 +168,6 @@ def go_to_upload_page():
     except Exception as e:
         print("Open upload page failed - ", str(e))
         return False
-
 
 
 def select_file(video_path):
@@ -373,7 +277,7 @@ def get_and_update_user():
                 # SQL query to select a user with less than three videos uploaded
                 select_query = """
                 SELECT email, password, videos_uploaded
-                FROM public.accounts
+                FROM public.insta_accounts
                 WHERE videos_uploaded < 3
                 AND
                 in_use = False
@@ -394,7 +298,7 @@ def get_and_update_user():
 
                     # Update the in_use value and last_used timestamp
                     update_query = """
-                    UPDATE public.accounts
+                    UPDATE public.insta_accounts
                     SET in_use = true, last_used = %s
                     WHERE email = %s;
                     """
@@ -427,7 +331,7 @@ def fetch_video():
             with connection.cursor() as cursor:
                 # SQL query to fetch one record with status 'NOT PROCESSED' from video_metadata table
                 select_query = """
-                SELECT * FROM public.video_metadata WHERE is_processed = 'NOT PROCESSED' LIMIT 1;
+                SELECT * FROM public.insta_video_metadata WHERE is_processed = 'NOT PROCESSED' LIMIT 1;
                 """
 
                 # Execute the SELECT query
@@ -459,7 +363,7 @@ def update_is_processed(url, new_status='DOWNLOADING'):
             with connection.cursor() as cursor:
                 # SQL UPDATE statement to set 'is_processed' to 'downloaded' based on exact URL match
                 update_query = """
-                    UPDATE public.video_metadata
+                    UPDATE public.insta_video_metadata
                     SET is_processed = %s
                     WHERE url = %s;
                 """
@@ -484,7 +388,7 @@ def update_user_video_count(email, video_count):
             with connection.cursor() as cursor:
                 # SQL UPDATE statement to set 'is_processed' to 'downloaded' based on exact URL match
                 update_query = """
-                    UPDATE public.accounts
+                    UPDATE public.insta_accounts
                     SET videos_uploaded = %s,
                     in_use = False
                     WHERE email = %s;
@@ -531,7 +435,7 @@ if __name__=='__main__':
                 print("No user available")
             elif video_info is None:
                 print("No video available")
-            else:
+            else:                
                 email = user_info['email']
                 password = user_info['password']
                 user_videos_uploaded = user_info['videos_uploaded']
@@ -555,7 +459,8 @@ if __name__=='__main__':
                     except:
                         pass
 
-                    driver = open_browser()
+                    driver = open_browser(proxy=True)
+                    go_to_homepage(driver)
                     # try login - can be successful or failed
                     login_status = login(driver, email, password)
                     current_login = email
@@ -575,7 +480,6 @@ if __name__=='__main__':
                     go_to_upload_page_status = go_to_upload_page()
                     
                     select_file_status = select_file(os.path.join(PATH_DICT['ORIGINAL_VIDEO_DIR'], file_name+'.mp4'))
-
                     upload_status = upload_video(captions=title)
                     if upload_status:
                         update_is_processed(video_url,'DONE')
@@ -600,7 +504,7 @@ if __name__=='__main__':
                 pass
         finally:
             try:
-                # os.remove(file_path)
+                os.remove(file_path)
                 print(f"File '{file_path}' deleted successfully.")
             except Exception as e:
                 print(f"Error deleting file '{file_path}': {e}")
