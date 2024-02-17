@@ -67,11 +67,13 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
     # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
+    chrome_options.add_argument('--disable-web-security')
     
     if headless:
         chrome_options.add_argument("--headless")
     if user_agent:
-        user_agent = UserAgent(min_percentage=1.2, os='linux').random
+        ua = UserAgent()
+        user_agent = ua.chrome + ' ' + ua.os_linux
         chrome_options.add_argument(f'user-agent={user_agent}')
     if proxy:
         chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
@@ -80,7 +82,8 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
         chrome_options.add_experimental_option("prefs", preferences)
     
     driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
-    
+    # driver.execute_script("return document.querySelector('extensions-manager').shadowRoot.querySelector('#viewManager > extensions-detail-view.active').shadowRoot.querySelector('div#container.page-container > div.page-content > div#options-section extensions-toggle-row#allow-incognito').shadowRoot.querySelector('label#label input').click()")
+
     return driver
 
 
@@ -116,6 +119,13 @@ def go_to_homepage(driver):
 
     # wait to load
     random_time_delay(min_wait_time, max_wait_time)
+    
+    
+    # Click on cookies
+    try:
+        driver.find_element(By.XPATH, "//button[text()='Allow all cookies']").click()
+    except:
+        pass
     
     # Skip turn on notifications page (if appears)
     for _ in range(4):
@@ -331,7 +341,7 @@ def fetch_video():
             with connection.cursor() as cursor:
                 # SQL query to fetch one record with status 'NOT PROCESSED' from video_metadata table
                 select_query = """
-                SELECT * FROM public.insta_video_metadata WHERE is_processed = 'NOT PROCESSED' LIMIT 1;
+                SELECT * FROM public.insta_video_metadata LIMIT 1;
                 """
 
                 # Execute the SELECT query
@@ -460,7 +470,6 @@ if __name__=='__main__':
                         pass
 
                     driver = open_browser(proxy=True)
-                    go_to_homepage(driver)
                     # try login - can be successful or failed
                     login_status = login(driver, email, password)
                     current_login = email
