@@ -30,6 +30,7 @@ from psycopg2 import pool
 from sqlalchemy import create_engine
 from contextlib import contextmanager
 from datetime import datetime
+from fake_useragent import UserAgent
 #%%
 
 #################### User input ####################
@@ -88,7 +89,7 @@ def get_and_update_user():
                 # SQL query to select a user with less than three videos uploaded
                 select_query = """
                 SELECT email, password, videos_uploaded
-                FROM public.accounts
+                FROM public.youtube_accounts
                 WHERE videos_uploaded < 3
                 AND
                 in_use = False
@@ -109,7 +110,7 @@ def get_and_update_user():
 
                     # Update the in_use value and last_used timestamp
                     update_query = """
-                    UPDATE public.accounts
+                    UPDATE public.youtube_accounts
                     SET in_use = true, last_used = %s
                     WHERE email = %s;
                     """
@@ -142,7 +143,7 @@ def fetch_video():
             with connection.cursor() as cursor:
                 # SQL query to fetch one record with status 'NOT PROCESSED' from video_metadata table
                 select_query = """
-                SELECT * FROM public.video_metadata WHERE is_processed = 'NOT PROCESSED' LIMIT 1;
+                SELECT * FROM public.youtube_video_metadata WHERE is_processed = 'NOT PROCESSED' LIMIT 1;
                 """
 
                 # Execute the SELECT query
@@ -174,7 +175,7 @@ def update_is_processed(url, new_status='DOWNLOADING'):
             with connection.cursor() as cursor:
                 # SQL UPDATE statement to set 'is_processed' to 'downloaded' based on exact URL match
                 update_query = """
-                    UPDATE public.video_metadata
+                    UPDATE public.youtube_video_metadata
                     SET is_processed = %s
                     WHERE url = %s;
                 """
@@ -200,7 +201,7 @@ def update_user_video_count(email, video_count):
             with connection.cursor() as cursor:
                 # SQL UPDATE statement to set 'is_processed' to 'downloaded' based on exact URL match
                 update_query = """
-                    UPDATE public.accounts
+                    UPDATE public.youtube_accounts
                     SET videos_uploaded = %s,
                     in_use = False
                     WHERE email = %s;
@@ -227,7 +228,7 @@ def extract_file_id(google_drive_link):
 
 # open chrome browser
 # Chrome browsers for Testing - c
-def open_browser(chrome_binary_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", driver_version='120.0.6099.234', headless=False, user_agent=None, proxy=None, download_directory=None):
+def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):
     chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
     
     chrome_options = uc.ChromeOptions()
@@ -235,27 +236,28 @@ def open_browser(chrome_binary_path="/Applications/Google Chrome.app/Contents/Ma
     
     chrome_options.add_argument("--window-size=1920,1080")
     #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
-    chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
+    # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
     #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
     chrome_options.add_argument("--mute-audio") # Mute system audio
+    # chrome_options.add_argument('--safebrowsing-disable-download-protection')
     #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
+    # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     
     if headless:
         chrome_options.add_argument("--headless")
     if user_agent:
-        #user_agent = UserAgent()['google chrome']
-        chrome_options.add_argument(f"--user-agent={user_agent}")
+        ua = UserAgent()
+        user_agent = ua.chrome + ' ' + ua.os_linux
+        chrome_options.add_argument(f'user-agent={user_agent}')
     if proxy:
-        chrome_options.add_argument(f"--proxy-server={proxy}")
+        chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
     
-    driver = uc.Chrome(service = chrome_service, options = chrome_options)
-    
+    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
     return driver
 
 
@@ -608,9 +610,7 @@ if __name__=='__main__':
                     except:
                         pass
 
-                    driver = open_browser(chrome_binary_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-                            driver_version = '120.0.6099.234',
-                            user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36')
+                    driver = open_browser(proxy=True)
                         
                     # try login - can be successful or failed
                     login_status = login(email, password)
