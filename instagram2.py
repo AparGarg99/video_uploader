@@ -341,7 +341,7 @@ def fetch_video():
             with connection.cursor() as cursor:
                 # SQL query to fetch one record with status 'NOT PROCESSED' from video_metadata table
                 select_query = """
-                SELECT * FROM public.insta_video_metadata LIMIT 1;
+                SELECT * FROM public.insta_video_metadata WHERE is_processed = 'NOT PROCESSED' LIMIT 1;
                 """
 
                 # Execute the SELECT query
@@ -513,8 +513,9 @@ if __name__=='__main__':
                 pass
         finally:
             try:
-                os.remove(file_path)
-                print(f"File '{file_path}' deleted successfully.")
+                if file_path:
+                    os.remove(file_path)
+                    print(f"File '{file_path}' deleted successfully.")
             except Exception as e:
                 print(f"Error deleting file '{file_path}': {e}")
             random_time_delay(min_wait_time, max_wait_time)
