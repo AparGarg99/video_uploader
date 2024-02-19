@@ -577,6 +577,7 @@ if __name__=='__main__':
     # video_url = video_info['url']
     # user_videos_uploaded = user_info['videos_uploaded']
     while True:
+        file_path = None
         try:
             user_info = get_and_update_user()
             video_info = None
@@ -656,8 +657,9 @@ if __name__=='__main__':
                 pass
         finally:
             try:
-                os.remove(file_path)
-                print(f"File '{file_path}' deleted successfully.")
+                if file_path:
+                    os.remove(file_path)
+                    print(f"File '{file_path}' deleted successfully.")
             except Exception as e:
                 print(f"Error deleting file '{file_path}': {e}")
             random_time_delay(min_wait_time, max_wait_time)

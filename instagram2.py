@@ -434,6 +434,7 @@ if __name__=='__main__':
             os.makedirs(val, exist_ok=True)
 
     while True:
+        file_path = None
         try:
             current_login = ''
             user_info = get_and_update_user()
