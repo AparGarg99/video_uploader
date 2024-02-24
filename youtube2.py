@@ -247,10 +247,10 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
     
     if headless:
         chrome_options.add_argument("--headless")
-    if user_agent:
-        ua = UserAgent()
-        user_agent = ua.chrome + ' ' + ua.os_linux
-        chrome_options.add_argument(f'user-agent={user_agent}')
+    # if user_agent:
+    #     ua = UserAgent()
+    #     user_agent = ua.chrome + ' ' + ua.os_linux
+    #     chrome_options.add_argument(f'user-agent={user_agent}')
     # if proxy:
     #     chrome_options.add_argument(f"--load-extension=./proxy_isp")  
     if download_directory:
