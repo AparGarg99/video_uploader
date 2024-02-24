@@ -242,7 +242,7 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
     # chrome_options.add_argument('--safebrowsing-disable-download-protection')
     #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
+    chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     
     if headless:
