@@ -251,8 +251,8 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
         ua = UserAgent()
         user_agent = ua.chrome + ' ' + ua.os_linux
         chrome_options.add_argument(f'user-agent={user_agent}')
-    if proxy:
-        chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
+    # if proxy:
+    #     chrome_options.add_argument(f"--load-extension=./proxy_isp")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
