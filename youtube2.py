@@ -228,9 +228,7 @@ def extract_file_id(google_drive_link):
 
 # open chrome browser
 # Chrome browsers for Testing - c
-def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):
-    chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
-    
+def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):    
     chrome_options = uc.ChromeOptions()
     # chrome_options.binary_location = chrome_binary_path
     
@@ -239,11 +237,11 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
     # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
     #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
     chrome_options.add_argument("--mute-audio") # Mute system audio
-    # chrome_options.add_argument('--safebrowsing-disable-download-protection')
     #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
     # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
+    chrome_options.add_argument('--disable-web-security')
     
     if headless:
         chrome_options.add_argument("--headless")
@@ -252,14 +250,13 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
     #     user_agent = ua.chrome + ' ' + ua.os_linux
     #     chrome_options.add_argument(f'user-agent={user_agent}')
     # if proxy:
-    #     chrome_options.add_argument(f"--load-extension=./proxy_isp")  
+    #     chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
     
-    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     return driver
-
 
 def open_remote_browser(grid_url, headless=False, user_agent=None, proxy=None, download_directory=None):
     chrome_service = ChromeService(ChromeDriverManager().install())
@@ -296,13 +293,10 @@ def open_remote_browser(grid_url, headless=False, user_agent=None, proxy=None, d
 def random_time_delay(start=10, end=20):
     time.sleep(random.uniform(start, end))
 
-
-
 def load_credentials_df():
     df = pd.read_csv(PATH_DICT['ACCOUNT_FILE'])
     df.columns = ['email_id', 'password']
     return df.reset_index(drop=True)
-
 
 def load_video_df():
     df = pd.read_csv(PATH_DICT['VIDEO_METADATA_FILE'])
@@ -310,7 +304,6 @@ def load_video_df():
     df['tags'] = df['tags'].apply(lambda x: ", ".join(x.split(", ")[:10]))
     df['download_status'] = False
     return df.reset_index(drop=True)
-
 
 def download_video(gdrive_file_url, output_filename):
     try:
@@ -332,7 +325,6 @@ def download_video(gdrive_file_url, output_filename):
         print("Video download failed - ", str(e))
         return False
 
-
 def download_video_df(df):
     for i, row in tqdm(df.iterrows(), total=df.shape[0]):
         output_filepath = os.path.join(PATH_DICT['ORIGINAL_VIDEO_DIR'], row['filename']+'.mp4')
@@ -343,7 +335,6 @@ def download_video_df(df):
             df.at[i, 'download_status'] = True
         
     return df.reset_index(drop=True)
-
 
 def generate_task_df(df_account, df_video, n=3):
     df = []
@@ -366,14 +357,12 @@ def generate_task_df(df_account, df_video, n=3):
     
     return df.reset_index(drop=True)
 
-
 def go_to_homepage():
     # go to homepage
     driver.get("https://www.youtube.com/")
-   
+
     # wait to load
     random_time_delay(min_wait_time, max_wait_time)
-
 
 def login(email_id, password):
     try:
@@ -419,8 +408,6 @@ def login(email_id, password):
     except Exception as e:
         print("Login Error - ", str(e))
         return False
-    
-
 
 def go_to_upload_page():
     try:
@@ -556,6 +543,9 @@ def logout():
 def check_file_exists(file_path):
     return os.path.exists(file_path)
 #%%
+def create_channel(driver):
+    driver.find_element(By.XPATH, ".//button[@aria-label='Create channel']").click()
+
 if __name__=='__main__':
     
     for key, val in PATH_DICT.items():
@@ -630,7 +620,13 @@ if __name__=='__main__':
                 # If login to current account successful, then proceed to upload
                 if login_status:
                     go_to_upload_page_status = go_to_upload_page()
-                    
+                    ## ADD create channell code
+                    try:
+                        create_channel(driver)
+                        random_time_delay()
+                        go_to_upload_page_status = go_to_upload_page()
+                    except Exception as e:
+                        pass
                     select_file_status = select_file(os.path.join(PATH_DICT['ORIGINAL_VIDEO_DIR'], file_name+'.mp4'))
 
                     upload_status = upload_video(title=title, description=description, tags=tags)
@@ -658,7 +654,9 @@ if __name__=='__main__':
         finally:
             try:
                 if file_path:
-                    os.remove(file_path)
+                    # The above code is using the `os` module in Python to remove a file specified by
+                    # the `file_path` variable.
+                    # os.remove(file_path)
                     print(f"File '{file_path}' deleted successfully.")
             except Exception as e:
                 print(f"Error deleting file '{file_path}': {e}")
