@@ -9,7 +9,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.edge.service import Service
+from datetime import datetime, timedelta
+from smsactivate.api import SMSActivateAPI
+import psycopg2
+from psycopg2 import pool
+from contextlib import contextmanager
 
+APIKEY = '2417387b156062A9319d62191b4dcfAd'
+
+max_connections = 1
 
 db_params = {
     'host': 'opraah-database.c9qouuiwyuwx.ap-south-1.rds.amazonaws.com',
@@ -19,18 +28,52 @@ db_params = {
     'port': '5432'
 }
 
+connection_pool = psycopg2.pool.ThreadedConnectionPool(
+    minconn=1,
+    maxconn=max_connections,
+    **db_params
+)
+
+
 min_wait_time = 5
 max_wait_time = 7
 email=""
 password = "Opraahfx@1234"
 
+@contextmanager
+def connect_to_database():
+    connection = connection_pool.getconn()
+
+    try:
+        yield connection  # Provide the connection to the caller
+    finally:
+        connection_pool.putconn(connection)  # Release the connection back to the pool
+
+def create_gmail_user_in_db(user_info):
+    try:
+        # Connect to the database using the context manager
+        with connect_to_database() as connection:
+            # Create a cursor to interact with the database
+            with connection.cursor() as cursor:
+                # SQL query to select a user with less than three videos uploaded
+                insert_query = """
+                    INSERT INTO public.youtube_accounts 
+                    (email, "password", in_use, last_used, videos_uploaded, "number", activation_id, insta_account) 
+                    VALUES (%s, %s, false, CURRENT_TIMESTAMP, 0, %s, %s, false);
+                """
+
+                # Execute the SELECT query
+                cursor.execute(insert_query, (user_info['email_id'], password, user_info['number'], user_info['activation_id']))
+    except Exception as e:
+        pass
+
 def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=False, proxy=None, download_directory=None):
-    chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
     
     chrome_options = webdriver.ChromeOptions()
+    # edge_options = webdriver.EdgeOptions()
     # chrome_options.binary_location = chrome_binary_path
     
-    chrome_options.add_argument("--window-size=1920,1080")
+    # chrome_options.add_argument("--window-size=1920,1080")
     #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
     # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
     #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
@@ -47,24 +90,31 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Fal
         ua = UserAgent()
         user_agent = ua.chrome + ' ' + ua.os_linux
         chrome_options.add_argument(f'user-agent={user_agent}')
-    if proxy:
-        chrome_options.add_argument(f"--load-extension=./proxy_isp")  
+    # if proxy:
+    #     chrome_options.add_argument(f"--load-extension=./proxy_isp")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
     
-    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
-
+    driver = webdriver.Chrome(options=chrome_options)
+    # driver = webdriver.Edge(service=edge_service)
     return driver
 
+def get_number():
+    sa = SMSActivateAPI(APIKEY)
+    sa_response = sa.getNumber(service='go',country=22)
+    return sa_response
 
+def get_otp(activation_code):
+    sa = SMSActivateAPI(APIKEY)
+    sa_response = sa.getStatus(id=activation_code)
+    return sa_response
 
 def random_time_delay(start=10, end=20):
     time.sleep(random.uniform(start, end))
-    
-    
+
 def go_to_gmail_account(driver):
-    
+
     driver.get("https://www.google.com/gmail/about/")
     random_time_delay(min_wait_time, max_wait_time)
 
@@ -101,7 +151,9 @@ def generate_user_info():
         'day': '11',
         'gender': 'Male',
         'year': 1992,
-        'email_id': email_id
+        'email_id': email_id,
+        'number': '',
+        'activation_id': '',
     }
     
     return info
@@ -120,6 +172,7 @@ def create_account(driver, user_info):
     driver.find_element(By.ID, "lastName").send_keys(last_name)
     driver.find_element(By.ID, "lastName").send_keys(Keys.ENTER)
 
+    random_time_delay(start=5,end=10)
     month_dropdown = Select(driver.find_element(By.ID, "month"))
     month_dropdown.select_by_visible_text(month)
     driver.find_element(By.ID, "day").send_keys(day)
@@ -127,22 +180,102 @@ def create_account(driver, user_info):
     gender_dropdown = Select(driver.find_element(By.ID, "gender"))
     gender_dropdown.select_by_visible_text(gender)
     driver.find_element(By.ID, "day").send_keys(Keys.ENTER)
-    flag = False
+    random_time_delay(start=5,end=10)
+    
+    # Enter gmail account
     try:
         driver.find_element(By.XPATH, "//div[text()='Create your own Gmail address']").click()
     except:
-        flag = True
+        pass
     driver.find_element(By.XPATH, "//input[@name='Username']").send_keys(email_id.split("@")[0])
     driver.find_element(By.XPATH, "//input[@name='Username']").send_keys(Keys.ENTER)
+    random_time_delay(start=5,end=10)
+    
+    # Enter password
     driver.find_element(By.XPATH, "//input[@type='password']").send_keys(password)
     driver.find_element(By.XPATH, "//input[@type='password']").send_keys(Keys.TAB)
     driver.switch_to.active_element.send_keys(password)
     driver.switch_to.active_element.send_keys(Keys.ENTER)
-    return driver
+    
+    random_time_delay(start=5,end=10)
+    # ENTER CODE FOR MOBILE NUMBER IF DETECTED
+    
+    try:
+        driver.find_element(By.XPATH, "//div[text()='Get a verification code sent to your phone']")
+        flag = True
+        while flag:
+            number_detail = get_number()
+            number = str(number_detail['phone'])
+            if not number.startswith("+"):
+                number = '+' + number
+            activation_id = number_detail['activation_id']
+            user_info['number'] = number
+            user_info['activation_id'] = activation_id
+            driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").send_keys(number)
+            driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").send_keys(Keys.ENTER)
+            random_time_delay()
+            try:
+                x = driver.find_element(By.XPATH, "//span[text()='This phone number has been used too many times']")
+                
+                if not x:
+                    flag = False
+            except Exception as e:
+                driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").clear()
+                continue
+                pass
+            
+            start_time = datetime.now()
+            otp_response = None
+            otp = None
+            while datetime.now() < start_time + timedelta(minutes=3):
+                otp_response = get_otp(activation_code=activation_id)
+                if otp_response == 'STATUS_WAIT_CODE':
+                    otp_response = None
+                    random_time_delay(start=5,end=15)
+                elif otp_response.startswith('STATUS_OK'):
+                    otp = otp_response.split(":")[1]
+                    break
+                
+            # Return False as user was not created
+            if not otp:
+                flag=True
+                driver.find_element(By.XPATH, "//span[text()='Get new code']").click()
+                random_time_delay(start=5,end=9)
+                driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").clear()
+
+            else:
+                flag=False
+        
+        driver.find_element(By.XPATH,"//span[text()='G-']/../div/input").send_keys(otp)
+        driver.find_element(By.XPATH,"//span[text()='G-']/../div/input").send_keys(Keys.ENTER)
+
+        random_time_delay()
+        
+        driver.find_element(By.XPATH,"//input[@id='recoveryEmailId']").click()
+        driver.switch_to.active_element.send_keys(Keys.TAB)
+        driver.switch_to.active_element.send_keys(Keys.TAB)
+        driver.switch_to.active_element.click()
+        
+        driver.find_element(By.XPATH,"//button").click()
+        
+        random_time_delay()
+        
+        driver.find_element(By.XPATH,"//button[contains(@jsaction,'mouseenter')]").click()
+    
+        random_time_delay()
+        
+        driver.find_element(By.XPATH, "//span[text()='I agree']").click()
+        
+    except:
+        return False
+    
+    return True
 
 if __name__ == '__main__':
     
-    for i in range(1):
+    account_count = 1
+    max_accounts = 10
+    while account_count <= max_accounts:
         
         try:
             try:
@@ -154,8 +287,14 @@ if __name__ == '__main__':
             go_to_gmail_account(driver)
             go_to_account_signup(driver)
             user_info = generate_user_info()
-            create_account(driver, user_info)
-            
+            account_created = False
+            try:
+                account_created = create_account(driver, user_info)
+            except:
+                pass
+            if account_created:
+                account_count += 1
+                create_gmail_user_in_db(user_info)
     
         except Exception as e:
             pass
