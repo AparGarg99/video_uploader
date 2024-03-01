@@ -64,6 +64,7 @@ def create_gmail_user_in_db(user_info):
 
                 # Execute the SELECT query
                 cursor.execute(insert_query, (user_info['email_id'], password, user_info['number'], user_info['activation_id']))
+                connection.commit()
     except Exception as e:
         pass
 
@@ -80,7 +81,7 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Fal
     chrome_options.add_argument("--mute-audio") # Mute system audio
     #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
+    chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     chrome_options.add_argument('--disable-web-security')
     
@@ -126,8 +127,8 @@ def go_to_account_signup(driver):
 
 def generate_user_info():
     
-    firstnames = ["Umesh","Mukesh","Jignesh","Chirag"]
-    lastnames = ["Mittal","Bansal","Aggarwal","Rathore"]
+    firstnames = ["Umesh","Mukesh","Jignesh","Chirag","Jignesh","Raul","Vivek","Mayank","Nipendra"]
+    lastnames = ["Mittal","Bansal","Aggarwal","Rathore","Bhola","Kalwar","Gupta"]
     
     firstname = firstnames[random.randint(0,len(firstnames)-1)].lower()
     lastname = lastnames[random.randint(0,len(lastnames)-1)].lower()
@@ -176,9 +177,12 @@ def create_account(driver, user_info):
     month_dropdown = Select(driver.find_element(By.ID, "month"))
     month_dropdown.select_by_visible_text(month)
     driver.find_element(By.ID, "day").send_keys(day)
+    random_time_delay(start=2,end=7)
     driver.find_element(By.ID, "year").send_keys(year)
+    random_time_delay(start=2,end=7)
     gender_dropdown = Select(driver.find_element(By.ID, "gender"))
     gender_dropdown.select_by_visible_text(gender)
+    random_time_delay(start=2,end=7)
     driver.find_element(By.ID, "day").send_keys(Keys.ENTER)
     random_time_delay(start=5,end=10)
     
@@ -215,13 +219,12 @@ def create_account(driver, user_info):
             driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").send_keys(Keys.ENTER)
             random_time_delay()
             try:
-                x = driver.find_element(By.XPATH, "//span[text()='This phone number has been used too many times']")
-                
-                if not x:
-                    flag = False
+                x = driver.find_element(By.XPATH, "//div[text()='This phone number has been used too many times']")
+                if x:
+                    driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").clear()
+                    continue
             except Exception as e:
-                driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").clear()
-                continue
+                flag = False
                 pass
             
             start_time = datetime.now()
@@ -256,13 +259,21 @@ def create_account(driver, user_info):
         driver.switch_to.active_element.send_keys(Keys.TAB)
         driver.switch_to.active_element.click()
         
-        driver.find_element(By.XPATH,"//button").click()
-        
+        try:
+            driver.find_element(By.XPATH,"//button/span[text()='Skip']").click()
+        except Exception as e:
+            pass
+            
+        try:
+            driver.find_element(By.XPATH,"//button/span[text()='Next']").click()
+        except Exception as e:
+            pass
+
         random_time_delay()
         
-        driver.find_element(By.XPATH,"//button[contains(@jsaction,'mouseenter')]").click()
+        # driver.find_element(By.XPATH,"//button[contains(@jsaction,'mouseenter')]").click()
     
-        random_time_delay()
+        # random_time_delay()
         
         driver.find_element(By.XPATH, "//span[text()='I agree']").click()
         
@@ -290,7 +301,7 @@ if __name__ == '__main__':
             account_created = False
             try:
                 account_created = create_account(driver, user_info)
-            except:
+            except Exception as e:
                 pass
             if account_created:
                 account_count += 1
