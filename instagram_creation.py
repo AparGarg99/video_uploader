@@ -15,6 +15,7 @@ from smsactivate.api import SMSActivateAPI
 import psycopg2
 from psycopg2 import pool
 from contextlib import contextmanager
+import re
 
 APIKEY = '2417387b156062A9319d62191b4dcfAd'
 
@@ -49,6 +50,36 @@ def connect_to_database():
     finally:
         connection_pool.putconn(connection)  # Release the connection back to the pool
 
+def get_gmail_account():
+    try:
+        # Connect to the database using the context manager
+        with connect_to_database() as connection:
+            # Create a cursor to interact with the database
+            with connection.cursor() as cursor:
+                # SQL query to select a user with less than three videos uploaded
+                select_query = """
+                SELECT email, password, videos_uploaded
+                FROM public.youtube_accounts
+                WHERE insta_account = False
+                ORDER BY last_used ASC
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED;
+                """
+
+                # Execute the SELECT query
+                cursor.execute(select_query)
+
+                # Fetch the selected user
+                user = cursor.fetchone()
+
+                return user
+
+    except Exception as e:
+        # Handle any exceptions
+        print(f"Error: {e}")
+        return None
+
+
 def create_gmail_user_in_db(user_info):
     try:
         # Connect to the database using the context manager
@@ -81,7 +112,7 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Fal
     chrome_options.add_argument("--mute-audio") # Mute system audio
     #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
+    # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     chrome_options.add_argument('--disable-web-security')
     
@@ -91,8 +122,8 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Fal
         ua = UserAgent()
         user_agent = ua.chrome + ' ' + ua.os_linux
         chrome_options.add_argument(f'user-agent={user_agent}')
-    # if proxy:
-    #     chrome_options.add_argument(f"--load-extension=./proxy_isp")  
+    if proxy:
+        chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
@@ -101,10 +132,9 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Fal
     # driver = webdriver.Edge(service=edge_service)
     return driver
 
-
 def get_number():
     sa = SMSActivateAPI(APIKEY)
-    sa_response = sa.getNumber(service='go',country=22)
+    sa_response = sa.getNumber(service='ig',country=22)
     return sa_response
 
 def get_otp(activation_code):
@@ -115,17 +145,6 @@ def get_otp(activation_code):
 def random_time_delay(start=10, end=20):
     time.sleep(random.uniform(start, end))
 
-def go_to_gmail_account(driver):
-
-    driver.get("https://www.google.com/gmail/about/")
-    random_time_delay(min_wait_time, max_wait_time)
-
-def go_to_account_signup(driver):
-    driver.find_element(By.XPATH, ".//summary[@class='dropdown__summary']/div[@class='dropdown__icon']").click()
-    random_time_delay(1,2)
-    driver.find_element(By.XPATH, ".//a[@data-action='For my personal use']").click()
-    return driver
-
 def generate_user_info():
     
     firstnames = ["Umesh","Mukesh","Jignesh","Chirag","Jignesh","Raul","Vivek","Mayank","Nipendra"]
@@ -135,7 +154,6 @@ def generate_user_info():
     lastname = lastnames[random.randint(0,len(lastnames)-1)].lower()
 
     unique_id = str(int(time.time()))
-    email_id = "{firstname}{lastname}{unique_id}@gmail.com".format(firstname=firstname, lastname=lastname, unique_id=unique_id)
 
     random_time_delay(2,4)
     
@@ -151,7 +169,7 @@ def generate_user_info():
         'day': str(day),
         'gender': 'Male',
         'year': year,
-        'email_id': email_id,
+        'user_name': firstname + unique_id + lastname,
         'number': '',
         'activation_id': '',
     }
@@ -159,144 +177,119 @@ def generate_user_info():
     return info
 
 
-def create_account(driver, user_info):
+def go_to_instagram_signup(driver):
+    
+    driver.get('https://www.instagram.com/accounts/emailsignup/')
+    
+    return driver
 
-    unique_id = str(int(time.time()))
-    email_id = user_info['email_id']
-    first_name = user_info['firstname']
-    last_name = user_info['lastname']
+def create_account(driver, user_info):
+    
+    gmail_account = get_gmail_account()
+    email = gmail_account[0]
+    password = gmail_account[1]
+    # number_info = get_number()
+    # number = str(number_info['phone'])
+    # if not number.startswith("+"):
+    #     number = '+' + number
+    # activation_id = number_info['activation_id']
+    
+    
+    driver.find_element(By.XPATH, "//input[@name='emailOrPhone']").send_keys(email)
+    random_time_delay(start=1,end=3)
+    driver.find_element(By.XPATH, "//input[@name='fullName']").send_keys(user_info['firstname']+" "+user_info['lastname'])
+    random_time_delay(start=1,end=3)
+    driver.find_element(By.XPATH, "//input[@name='username']").send_keys(user_info['user_name'])
+    random_time_delay(start=1,end=3)
+    driver.find_element(By.XPATH, "//input[@name='password']").send_keys(password)
+    random_time_delay(start=1,end=3)
+    driver.find_element(By.XPATH, "//button[text()='Sign Up' or text()='Next']").click()
+    random_time_delay(start=4,end=7)
     month = user_info['month']
     day = user_info['day']
     gender = user_info['gender']
     year = user_info['year']
-    driver.find_element(By.ID, "firstName").send_keys(first_name)
-    driver.find_element(By.ID, "lastName").send_keys(last_name)
-    driver.find_element(By.ID, "lastName").send_keys(Keys.ENTER)
-
-    random_time_delay(start=5,end=10)
-    month_dropdown = Select(driver.find_element(By.ID, "month"))
+    month_dropdown = Select(driver.find_element(By.XPATH, "//select[@title='Month:']"))
     month_dropdown.select_by_visible_text(month)
-    driver.find_element(By.ID, "day").send_keys(day)
-    random_time_delay(start=2,end=7)
-    driver.find_element(By.ID, "year").send_keys(year)
-    random_time_delay(start=2,end=7)
-    gender_dropdown = Select(driver.find_element(By.ID, "gender"))
-    gender_dropdown.select_by_visible_text(gender)
-    random_time_delay(start=2,end=7)
-    driver.find_element(By.ID, "day").send_keys(Keys.ENTER)
-    random_time_delay(start=5,end=10)
+    random_time_delay(start=5,end=8)
+    day_dropdown = Select(driver.find_element(By.XPATH, "//select[@title='Day:']"))
+    day_dropdown.select_by_visible_text(day)
+    random_time_delay(start=5,end=8)
+    year_dropdown = Select(driver.find_element(By.XPATH, "//select[@title='Year:']"))
+    year_dropdown.select_by_visible_text(str(year))
+    random_time_delay(start=5,end=8)
+    driver.find_element(By.XPATH, "//button[text()='Next']").click()
+    random_time_delay(start=5,end=8)
     
-    # Enter gmail account
-    try:
-        driver.find_element(By.XPATH, "//div[text()='Create your own Gmail address']").click()
-    except:
-        pass
-    driver.find_element(By.XPATH, "//input[@name='Username']").send_keys(email_id.split("@")[0])
-    driver.find_element(By.XPATH, "//input[@name='Username']").send_keys(Keys.ENTER)
-    random_time_delay(start=5,end=10)
-    
-    # Enter password
+    driver.execute_script("window.open('');")
+    driver.switch_to.window(driver.window_handles[1])
+    driver.get('https://www.gmail.com')
+    driver.find_element(By.XPATH, "//a[text()='Sign in']").click()
+    random_time_delay(start=5,end=8)
+    driver.find_element(By.XPATH, "//input[@type='email']").send_keys(email)
+    driver.find_element(By.XPATH, "//span[text()='Next']").click()
+    random_time_delay(start=5,end=8)
     driver.find_element(By.XPATH, "//input[@type='password']").send_keys(password)
-    driver.find_element(By.XPATH, "//input[@type='password']").send_keys(Keys.TAB)
-    driver.switch_to.active_element.send_keys(password)
-    driver.switch_to.active_element.send_keys(Keys.ENTER)
-    
-    random_time_delay(start=5,end=10)
-    # ENTER CODE FOR MOBILE NUMBER IF DETECTED
-    
+    driver.find_element(By.XPATH, "//span[text()='Next']").click()
+    random_time_delay(start=5,end=8)
     try:
-        driver.find_element(By.XPATH, "//div[text()='Get a verification code sent to your phone']")
-        flag = True
-        while flag:
-            number_detail = get_number()
-            number = str(number_detail['phone'])
-            if not number.startswith("+"):
-                number = '+' + number
-            activation_id = number_detail['activation_id']
-            user_info['number'] = number
-            user_info['activation_id'] = activation_id
-            driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").send_keys(number)
-            driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").send_keys(Keys.ENTER)
-            random_time_delay()
-            try:
-                x = driver.find_element(By.XPATH, "//div[text()='This phone number has been used too many times']")
-                if x:
-                    driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").clear()
-                    continue
-            except Exception as e:
-                flag = False
-                pass
-            
-            start_time = datetime.now()
-            otp_response = None
-            otp = None
-            while datetime.now() < start_time + timedelta(minutes=3):
-                otp_response = get_otp(activation_code=activation_id)
-                if otp_response == 'STATUS_WAIT_CODE':
-                    otp_response = None
-                    random_time_delay(start=5,end=15)
-                elif otp_response.startswith('STATUS_OK'):
-                    otp = otp_response.split(":")[1]
-                    break
-                
-            # Return False as user was not created
-            if not otp:
-                flag=True
-                driver.find_element(By.XPATH, "//span[text()='Get new code']").click()
-                random_time_delay(start=5,end=9)
-                driver.find_element(By.XPATH, ".//input[@id='phoneNumberId']").clear()
-
-            else:
-                flag=False
-        
-        driver.find_element(By.XPATH,"//span[text()='G-']/../div/input").send_keys(otp)
-        driver.find_element(By.XPATH,"//span[text()='G-']/../div/input").send_keys(Keys.ENTER)
-
-        random_time_delay()
-        
-        driver.find_element(By.XPATH,"//input[@id='recoveryEmailId']").click()
-        driver.switch_to.active_element.send_keys(Keys.TAB)
-        driver.switch_to.active_element.send_keys(Keys.TAB)
-        driver.switch_to.active_element.click()
-        
-        try:
-            driver.find_element(By.XPATH,"//button/span[text()='Skip']").click()
-        except Exception as e:
-            pass
-            
-        try:
-            driver.find_element(By.XPATH,"//button/span[text()='Next']").click()
-        except Exception as e:
-            pass
-
-        random_time_delay()
-        
-        # driver.find_element(By.XPATH,"//button[contains(@jsaction,'mouseenter')]").click()
+        driver.find_element(By.XPATH, "//span[text()='Not now']").click()
+    except Exception as e:
+        pass
+    random_time_delay(start=5,end=8)
+    driver.get('https://mail.google.com/mail/u/0/#inbox')
+    random_time_delay(start=10,end=12)
+    xpath_expression = f"//span[contains(text(),'{email}')]"
+    element = driver.find_element(By.XPATH, xpath_expression)
+    element_html = element.get_attribute("outerHTML")
     
-        # random_time_delay()
-        
-        driver.find_element(By.XPATH, "//span[text()='I agree']").click()
-        
-    except:
+    otp_pattern = re.compile(r'\b\d{6}\b')
+    otp_match = re.search(otp_pattern, element_html)
+    otp = otp_match.group()
+    
+    driver.switch_to.window(driver.window_handles[0])
+    random_time_delay(1,3)
+    driver.find_element(By.XPATH, "//input[@name='email_confirmation_code']").send_keys(otp)
+    driver.find_element(By.XPATH, "//div[text()='Next']").click()
+    # user_info['number'] = number
+    # user_info['activation_id'] = activation_id
+    
+    start_time = datetime.now()
+    otp_response = None
+    otp = None
+    # while datetime.now() < start_time + timedelta(minutes=3):
+    #     otp_response = get_otp(activation_code=activation_id)
+    #     if otp_response == 'STATUS_WAIT_CODE':
+    #         otp_response = None
+    #         random_time_delay(start=5,end=15)
+    #     elif otp_response.startswith('STATUS_OK'):
+    #         otp = otp_response.split(":")[1]
+    #         break
+    
+    if not otp:
         return False
     
+    driver.find_element(By.XPATH, "//input[@name='confirmationCode']").send_keys(otp)
+    random_time_delay(start=5,end=8)
+    driver.find_element(By.XPATH, "//button[text()='Confirm']").click()
     return True
 
 if __name__ == '__main__':
     
+    
     account_count = 1
     max_accounts = 10
+    
     while account_count <= max_accounts:
-        
+
         try:
             try:
                 driver.quit()
             except Exception as e:
                 pass
 
-            driver = open_browser(proxy=True)
-            go_to_gmail_account(driver)
-            go_to_account_signup(driver)
+            driver = open_browser()
+            go_to_instagram_signup(driver)
             user_info = generate_user_info()
             account_created = False
             try:
@@ -305,7 +298,7 @@ if __name__ == '__main__':
                 pass
             if account_created:
                 account_count += 1
-                create_gmail_user_in_db(user_info)
+                # create_gmail_user_in_db(user_info)
     
         except Exception as e:
             pass
