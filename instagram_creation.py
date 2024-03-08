@@ -29,7 +29,7 @@ USE_PROXY = False
 USE_RANDOM_USER_AGENT = False
 USE_TEMP_MAIL = True
 USE_SMS_ACTIVE = False
-USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL = True
+USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL = False
 max_connections = 1
 
 db_params = {
@@ -112,7 +112,7 @@ def create_gmail_user_in_db(user_info):
 
 def open_new_browser(headless=False, user_agent=True, proxy=None, download_directory=None):
     
-    from seleniumwire import webdriver as wirewebdriver
+    # from seleniumwire import webdriver as wirewebdriver
     
     if proxy:
         options = {
@@ -122,10 +122,10 @@ def open_new_browser(headless=False, user_agent=True, proxy=None, download_direc
             }
         }
     
-        s_driver = wirewebdriver.Chrome(seleniumwire_options=options)
+        s_driver = webdriver.Chrome()
         return s_driver
     else:
-        s_driver = wirewebdriver.Chrome()
+        s_driver = webdriver.Chrome()
         return s_driver
 
 
@@ -227,7 +227,7 @@ def generate_user_info():
         'day': str(day),
         'gender': 'Male',
         'year': year,
-        'user_name': firstname + "_" + lastname + "_" + unique_id[:4],
+        'user_name': firstname + "_" + lastname + "_" + unique_id[:4:-1],
         'number': '',
         'activation_id': '',
         'password':password
@@ -259,9 +259,28 @@ def get_from_email_from_temp_mail(driver):
 
     driver.get('https://temp-mail.org/en/')
     random_time_delay(15, 20)
-    driver.find_element(By.XPATH, '//input[@id="mail"]').click()
-    random_time_delay(min_wait_time, max_wait_time)
-    email_id = pyperclip.paste()
+
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_file:
+            ## Save screenshot in the temporary file
+            temp_filename = temp_file.name
+            driver.execute_script("window.scrollBy(0, 200);")
+            driver.save_screenshot(temp_filename)
+
+            ## Use EasyOCR to read text from the screenshot
+            reader = easyocr.Reader(['en'], gpu=False)
+            result = reader.readtext(temp_filename)
+
+        extracted_text = ' '.join([entry[1] for entry in result])
+
+        email_id = f"{next(i for i in extracted_text.split() if '@' in i)}"
+        if not email_id.endswith(".com"):
+            email_id += ".com"
+    except Exception as e:
+        # driver.find_element(By.XPATH, "//span[text()='Copy']").click()
+        random_time_delay(min_wait_time, max_wait_time)
+        random_time_delay(min_wait_time, max_wait_time)
+        email_id = pyperclip.paste()
     random_time_delay(min_wait_time, max_wait_time)
 
     return email_id
@@ -296,7 +315,7 @@ def create_account(driver, user_info):
     ## via temp mail
         if USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL:
             another_driver = open_new_browser()
-            email = get_from_email_from_temp_mail(driver)
+            email = get_from_email_from_temp_mail(another_driver)
             user_info['email'] = email
         else:
             email = get_from_email_from_temp_mail(driver)
@@ -321,7 +340,7 @@ def create_account(driver, user_info):
     random_time_delay(start=7,end=11)
     driver.find_element(By.XPATH, "//button[text()='Sign Up' or text()='Next']").click()
     random_time_delay(start=4,end=7)
-    random_time_delay(start=4,end=7)
+    # random_time_delay(start=4,end=7)
     random_time_delay(start=7,end=11)
     month = user_info['month']
     day = user_info['day']
@@ -365,15 +384,26 @@ def create_account(driver, user_info):
 
             extracted_text = ' '.join([entry[1] for entry in result])
             otp = re.search(r'\b\d{6}\b', extracted_text).group()
-
-    if USE_SMS_ACTIVE:
-    # For SMS-Activate API
-        while datetime.now() <= start_time + timedelta(minutes=15):
-            otp = get_temp_email_otp(user_info['activation_id'])
             if otp is None:
                 random_time_delay(start=25,end=35)
                 continue
             break
+        if USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL:
+            driver.find_element(By.XPATH, "//input[@name='confirmationCode' or @name='email_confirmation_code']").send_keys(otp)
+        else:
+            temp_mail_driver.switch_to.window(driver.window_handles[-1])
+        random_time_delay(start=5,end=8)
+    if USE_SMS_ACTIVE:
+    # For SMS-Activate API
+        while datetime.now() <= start_time + timedelta(minutes=15):
+            try:
+                otp = get_temp_email_otp(user_info['activation_id'])
+                if otp is None:
+                    random_time_delay(start=25,end=35)
+                    continue
+                break
+            except Exception as e:
+                pass    
         random_time_delay(start=25,end=35)
 
     driver.find_element(By.XPATH, "//input[@name='confirmationCode' or @name='email_confirmation_code']").send_keys(otp)
@@ -381,8 +411,20 @@ def create_account(driver, user_info):
 
     try:
         driver.find_element(By.XPATH, "//*[text()='Confirm' or text()='Next']").click()
+        random_time_delay(min_wait_time,max_wait_time)
     except Exception as e:
         pass
+    try:
+        try:
+            driver.find_element(By.XPATH, "//*[text()='Not Now']").click()
+            random_time_delay(min_wait_time, max_wait_time)
+        except:
+            pass
+
+        random_time_delay(min_wait_time,max_wait_time)
+        driver.find_element(By.XPATH,"//span[text()='Suggested for you']")
+    except Exception as e:
+        return False
     return True
 
 if __name__ == '__main__':
