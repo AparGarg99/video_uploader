@@ -1,15 +1,17 @@
 import random
+import string
+import tempfile
 import time
 from fake_useragent import UserAgent
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium import webdriver
+import requests
 import undetected_chromedriver as uc
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.edge.service import Service
+# from seleniumwire import webdriver
+from selenium import webdriver
 from datetime import datetime, timedelta
 from smsactivate.api import SMSActivateAPI
 import psycopg2
@@ -17,8 +19,17 @@ from psycopg2 import pool
 from contextlib import contextmanager
 import re
 
+#tempmail imports
+import pyperclip
+import easyocr
+
 APIKEY = '2417387b156062A9319d62191b4dcfAd'
 
+USE_PROXY = False
+USE_RANDOM_USER_AGENT = False
+USE_TEMP_MAIL = True
+USE_SMS_ACTIVE = False
+USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL = True
 max_connections = 1
 
 db_params = {
@@ -39,7 +50,7 @@ connection_pool = psycopg2.pool.ThreadedConnectionPool(
 min_wait_time = 5
 max_wait_time = 7
 email=""
-password = "Opraahfx@1234"
+# password = "Opraahfx@1234"
 
 @contextmanager
 def connect_to_database():
@@ -94,18 +105,36 @@ def create_gmail_user_in_db(user_info):
                 """
 
                 # Execute the SELECT query
-                cursor.execute(insert_query, (user_info['email_id'], password, user_info['number'], user_info['activation_id']))
+                cursor.execute(insert_query, (user_info['email'], user_info['password'], user_info['number'], user_info['activation_id']))
                 connection.commit()
     except Exception as e:
         pass
 
-def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=False, proxy=None, download_directory=None):
+def open_new_browser(headless=False, user_agent=True, proxy=None, download_directory=None):
     
-    chrome_options = webdriver.ChromeOptions()
+    from seleniumwire import webdriver as wirewebdriver
+    
+    if proxy:
+        options = {
+            'proxy': {
+                'http': 'http://krfYsk7fDNckFV7f:X90vuBO81YgGbVHu_session-9UDy8DOS_lifetime-30m_streaming-1@geo.iproyal.com:12321',
+                'https': 'http://krfYsk7fDNckFV7f:X90vuBO81YgGbVHu_session-9UDy8DOS_lifetime-30m_streaming-1@geo.iproyal.com:12321',
+            }
+        }
+    
+        s_driver = wirewebdriver.Chrome(seleniumwire_options=options)
+        return s_driver
+    else:
+        s_driver = wirewebdriver.Chrome()
+        return s_driver
+
+
+def open_browser(headless=False, user_agent=False, proxy=None, download_directory=None):
+    
+    chrome_options = uc.ChromeOptions()
     # edge_options = webdriver.EdgeOptions()
-    # chrome_options.binary_location = chrome_binary_path
     
-    # chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("--window-size=1920,1080")
     #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
     # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
     #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
@@ -114,16 +143,16 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Fal
     #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
     # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
-    chrome_options.add_argument('--disable-web-security')
-    
+    # chrome_options.add_argument('--disable-web-security')
+    chrome_options.add_argument("--enable-clipboard")
     if headless:
         chrome_options.add_argument("--headless")
     if user_agent:
         ua = UserAgent()
-        user_agent = ua.chrome + ' ' + ua.os_linux
+        user_agent = ua.random
         chrome_options.add_argument(f'user-agent={user_agent}')
     if proxy:
-        chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
+        chrome_options.add_argument("--load-extension=./proxy_residential")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
@@ -137,6 +166,35 @@ def get_number():
     sa_response = sa.getNumber(service='ig',country=22)
     return sa_response
 
+def get_temp_email():
+
+    email_url = 'https://api.sms-activate.org/stubs/handler_api.php?api_key={}&action=buyMailActivation&site=instagram.com&mail_type=2&mail_domain=hotmail.com'.format(APIKEY)
+
+    sa_response = requests.get(email_url)
+    return sa_response
+
+def get_temp_email_otp(activation_id):
+    # write code to get OTP via API using activation_id
+    otp_url = 'https://api.sms-activate.org/stubs/handler_api.php?api_key={}&action=checkMailActivation&id={}'.format(APIKEY, activation_id)
+
+    response = requests.get(otp_url, timeout=30)
+
+    response_json = response.json()
+
+    status = response_json.get('status',None)
+
+    if status is None:
+        return None
+
+    email_response = response_json.get('response', None)
+
+    if email_response is None:
+        return None
+
+    otp = email_response.get('value',None)    
+
+    return otp
+
 def get_otp(activation_code):
     sa = SMSActivateAPI(APIKEY)
     sa_response = sa.getStatus(id=activation_code)
@@ -147,12 +205,12 @@ def random_time_delay(start=10, end=20):
 
 def generate_user_info():
     
-    firstnames = ["Umesh","Mukesh","Jignesh","Chirag","Jignesh","Raul","Vivek","Mayank","Nipendra"]
-    lastnames = ["Mittal","Bansal","Aggarwal","Rathore","Bhola","Kalwar","Gupta"]
+    firstnames = ["Bibek","Vivek","Jignesh","Chirag","Jignesh","Raul","Vivek","Mayank","Nipendra","Nishant"]
+    lastnames = ["Mittal","Bansal","Aggarwal","Rathore","Bhola","Kalwar","Gupta","Garg"]
     months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    firstname = firstnames[random.randint(0,len(firstnames)-1)].lower()
-    lastname = lastnames[random.randint(0,len(lastnames)-1)].lower()
-
+    firstname = firstnames[random.randint(0,len(firstnames)-1)]
+    lastname = lastnames[random.randint(0,len(lastnames)-1)]
+    password = generate_random_password()
     unique_id = str(int(time.time()))
 
     random_time_delay(2,4)
@@ -169,42 +227,102 @@ def generate_user_info():
         'day': str(day),
         'gender': 'Male',
         'year': year,
-        'user_name': firstname + unique_id + lastname,
+        'user_name': firstname + "_" + lastname + "_" + unique_id[:4],
         'number': '',
         'activation_id': '',
+        'password':password
     }
     
     return info
 
-
 def go_to_instagram_signup(driver):
-    
-    driver.get('https://www.instagram.com/accounts/emailsignup/')
-    
+
+    driver.get('https://www.instagram.com')
+    random_time_delay(min_wait_time, max_wait_time)
+    random_time_delay(min_wait_time, max_wait_time)
+
+    try:
+        driver.find_element(By.XPATH, "//*[text()='Decline optional cookies']").click()
+    except Exception:
+        pass
+    try:
+        driver.find_element(By.XPATH, "//button[text()='Sign Up']").click()
+    except Exception as e:
+        driver.find_element(By.XPATH, "//a[@href='/accounts/emailsignup/']").click()
+
+    random_time_delay(10, 12)
+    random_time_delay(min_wait_time, max_wait_time)
+
     return driver
 
+def get_from_email_from_temp_mail(driver):
+
+    driver.get('https://temp-mail.org/en/')
+    random_time_delay(15, 20)
+    driver.find_element(By.XPATH, '//input[@id="mail"]').click()
+    random_time_delay(min_wait_time, max_wait_time)
+    email_id = pyperclip.paste()
+    random_time_delay(min_wait_time, max_wait_time)
+
+    return email_id
+
+def generate_random_password(length=12):
+    # Define the character set for the password
+    # includes letters, digits, and punctuation symbols
+    characters = string.ascii_letters + string.digits + string.punctuation  
+
+    # Generate the password by randomly selecting characters from the character set
+    password = ''.join(random.choice(characters) for i in range(length))
+
+    return password
+
 def create_account(driver, user_info):
-    
-    gmail_account = get_gmail_account()
-    email = gmail_account[0]
-    password = gmail_account[1]
-    # number_info = get_number()
-    # number = str(number_info['phone'])
-    # if not number.startswith("+"):
-    #     number = '+' + number
-    # activation_id = number_info['activation_id']
-    
-    
-    driver.find_element(By.XPATH, "//input[@name='emailOrPhone']").send_keys(email)
+    # VIA sms-activate API
+
+    if USE_SMS_ACTIVE and USE_TEMP_MAIL:
+        print("#### CANNOT USE BOTH SMS-ACTIVE and TEMP-MAIL ####")
+        return False
+
+    if USE_SMS_ACTIVE:
+        email_info = get_temp_email()
+        email_info_response = email_info.json()['response']
+        email = email_info_response['email']
+        activation_id = email_info_response['id']
+
+        user_info['email'] = email
+        user_info['activation_id'] = activation_id
+
+    if USE_TEMP_MAIL:
+    ## via temp mail
+        if USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL:
+            another_driver = open_new_browser()
+            email = get_from_email_from_temp_mail(driver)
+            user_info['email'] = email
+        else:
+            email = get_from_email_from_temp_mail(driver)
+            ## create new window for instagram
+            driver.execute_script("window.open('about:blank', '_blank');")
+            random_time_delay(min_wait_time, max_wait_time)
+            driver.switch_to.window(driver.window_handles[-1])
+
+            user_info['email'] = email
+
+    go_to_instagram_signup(driver)
+    random_time_delay(min_wait_time, max_wait_time)
+
+    driver.find_element(By.XPATH, "//input[@name='emailOrPhone']").send_keys(user_info['email'])
     random_time_delay(start=1,end=3)
     driver.find_element(By.XPATH, "//input[@name='fullName']").send_keys(user_info['firstname']+" "+user_info['lastname'])
     random_time_delay(start=1,end=3)
     driver.find_element(By.XPATH, "//input[@name='username']").send_keys(user_info['user_name'])
     random_time_delay(start=1,end=3)
-    driver.find_element(By.XPATH, "//input[@name='password']").send_keys(password)
+    driver.find_element(By.XPATH, "//input[@name='password']").send_keys(user_info['password'])
     random_time_delay(start=1,end=3)
+    random_time_delay(start=7,end=11)
     driver.find_element(By.XPATH, "//button[text()='Sign Up' or text()='Next']").click()
     random_time_delay(start=4,end=7)
+    random_time_delay(start=4,end=7)
+    random_time_delay(start=7,end=11)
     month = user_info['month']
     day = user_info['day']
     gender = user_info['gender']
@@ -218,68 +336,61 @@ def create_account(driver, user_info):
     year_dropdown = Select(driver.find_element(By.XPATH, "//select[@title='Year:']"))
     year_dropdown.select_by_visible_text(str(year))
     random_time_delay(start=5,end=8)
-    driver.find_element(By.XPATH, "//button[text()='Next']").click()
+    driver.find_element(By.XPATH, "//button[text()='Next' or text()='Sign Up']").click()
     random_time_delay(start=5,end=8)
-    
-    driver.execute_script("window.open('');")
-    driver.switch_to.window(driver.window_handles[1])
-    driver.get('https://www.gmail.com')
-    driver.find_element(By.XPATH, "//a[text()='Sign in']").click()
+
+
+    otp = None
+    start_time = datetime.now()
+
+    # VIA TEMP Mail
+    if USE_TEMP_MAIL:
+        # driver.execute_script("window.open('about:blank', '_blank');")
+        temp_mail_driver = driver
+        if USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL:
+            temp_mail_driver = another_driver
+        else:
+            temp_mail_driver.switch_to.window(temp_mail_driver.window_handles[0])
+        random_time_delay(15, 20)
+        while datetime.now() < start_time + timedelta(minutes=10):
+            temp_mail_driver.execute_script("window.scrollBy(0, 700);")
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
+                ## Save screenshot in the temporary file
+                temp_filename = temp_file.name
+                temp_mail_driver.save_screenshot(temp_filename)
+
+            ## Use EasyOCR to read text from the screenshot
+                reader = easyocr.Reader(['en'], gpu=False)
+                result = reader.readtext(temp_filename)
+
+            extracted_text = ' '.join([entry[1] for entry in result])
+            otp = re.search(r'\b\d{6}\b', extracted_text).group()
+
+    if USE_SMS_ACTIVE:
+    # For SMS-Activate API
+        while datetime.now() <= start_time + timedelta(minutes=15):
+            otp = get_temp_email_otp(user_info['activation_id'])
+            if otp is None:
+                random_time_delay(start=25,end=35)
+                continue
+            break
+        random_time_delay(start=25,end=35)
+
+    driver.find_element(By.XPATH, "//input[@name='confirmationCode' or @name='email_confirmation_code']").send_keys(otp)
     random_time_delay(start=5,end=8)
-    driver.find_element(By.XPATH, "//input[@type='email']").send_keys(email)
-    driver.find_element(By.XPATH, "//span[text()='Next']").click()
-    random_time_delay(start=5,end=8)
-    driver.find_element(By.XPATH, "//input[@type='password']").send_keys(password)
-    driver.find_element(By.XPATH, "//span[text()='Next']").click()
-    random_time_delay(start=5,end=8)
+
     try:
-        driver.find_element(By.XPATH, "//span[text()='Not now']").click()
+        driver.find_element(By.XPATH, "//*[text()='Confirm' or text()='Next']").click()
     except Exception as e:
         pass
-    random_time_delay(start=5,end=8)
-    driver.get('https://mail.google.com/mail/u/0/#inbox')
-    random_time_delay(start=10,end=12)
-    xpath_expression = f"//span[contains(text(),'{email}')]"
-    element = driver.find_element(By.XPATH, xpath_expression)
-    element_html = element.get_attribute("outerHTML")
-    
-    otp_pattern = re.compile(r'\b\d{6}\b')
-    otp_match = re.search(otp_pattern, element_html)
-    otp = otp_match.group()
-    
-    driver.switch_to.window(driver.window_handles[0])
-    random_time_delay(1,3)
-    driver.find_element(By.XPATH, "//input[@name='email_confirmation_code']").send_keys(otp)
-    driver.find_element(By.XPATH, "//div[text()='Next']").click()
-    # user_info['number'] = number
-    # user_info['activation_id'] = activation_id
-    
-    start_time = datetime.now()
-    otp_response = None
-    otp = None
-    # while datetime.now() < start_time + timedelta(minutes=3):
-    #     otp_response = get_otp(activation_code=activation_id)
-    #     if otp_response == 'STATUS_WAIT_CODE':
-    #         otp_response = None
-    #         random_time_delay(start=5,end=15)
-    #     elif otp_response.startswith('STATUS_OK'):
-    #         otp = otp_response.split(":")[1]
-    #         break
-    
-    if not otp:
-        return False
-    
-    driver.find_element(By.XPATH, "//input[@name='confirmationCode']").send_keys(otp)
-    random_time_delay(start=5,end=8)
-    driver.find_element(By.XPATH, "//button[text()='Confirm']").click()
     return True
 
 if __name__ == '__main__':
-    
-    
+
+
     account_count = 1
     max_accounts = 10
-    
+
     while account_count <= max_accounts:
 
         try:
@@ -288,8 +399,8 @@ if __name__ == '__main__':
             except Exception as e:
                 pass
 
-            driver = open_browser()
-            go_to_instagram_signup(driver)
+            driver = open_browser(user_agent=USE_RANDOM_USER_AGENT, proxy=USE_PROXY)
+            # go_to_instagram_signup(driver)
             user_info = generate_user_info()
             account_created = False
             try:
@@ -298,7 +409,7 @@ if __name__ == '__main__':
                 pass
             if account_created:
                 account_count += 1
-                # create_gmail_user_in_db(user_info)
+                create_gmail_user_in_db(user_info)
     
         except Exception as e:
             pass

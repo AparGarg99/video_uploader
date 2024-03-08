@@ -17,7 +17,8 @@ from pydrive.drive import GoogleDrive
 from pynput.keyboard import Key, Controller
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium import webdriver
+# from selenium import webdriver
+from seleniumwire import webdriver
 import undetected_chromedriver as uc
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -228,7 +229,21 @@ def extract_file_id(google_drive_link):
 
 # open chrome browser
 # Chrome browsers for Testing - c
-def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):    
+
+def open_chrome_browser(headless=False, user_agent=True, proxy=None, download_directory=None):
+    options = {
+        'proxy': {
+            'http': 'http://krfYsk7fDNckFV7f:X90vuBO81YgGbVHu_country-in_session-eWtuXDGW_lifetime-30m_streaming-1@geo.iproyal.com:11200',
+            'https': 'http://krfYsk7fDNckFV7f:X90vuBO81YgGbVHu_country-in_session-eWtuXDGW_lifetime-30m_streaming-1@geo.iproyal.com:11200',
+        }
+    }
+    
+    driver = webdriver.Chrome(seleniumwire_options=options)
+
+    return driver
+
+
+def open_browser(headless=False, user_agent=True, proxy=None, download_directory=None):    
     chrome_options = uc.ChromeOptions()
     # chrome_options.binary_location = chrome_binary_path
     
@@ -242,15 +257,15 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
     # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
     #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     chrome_options.add_argument('--disable-web-security')
-    
+
     if headless:
         chrome_options.add_argument("--headless")
     # if user_agent:
     #     ua = UserAgent()
     #     user_agent = ua.chrome + ' ' + ua.os_linux
     #     chrome_options.add_argument(f'user-agent={user_agent}')
-    # if proxy:
-    #     chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
+    if proxy:
+        chrome_options.add_argument(f"--load-extension=./ip_royal_proxy")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
@@ -601,7 +616,7 @@ if __name__=='__main__':
                     except:
                         pass
 
-                    driver = open_browser(proxy=True)
+                    driver = open_chrome_browser(proxy=True)
                         
                     # try login - can be successful or failed
                     login_status = login(email, password)
