@@ -30,6 +30,8 @@ USE_RANDOM_USER_AGENT = False
 USE_TEMP_MAIL = True
 USE_SMS_ACTIVE = False
 USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL = False
+CLIPBOARD_FIRST = True
+
 max_connections = 1
 
 db_params = {
@@ -111,9 +113,9 @@ def create_gmail_user_in_db(user_info):
         pass
 
 def open_new_browser(headless=False, user_agent=True, proxy=None, download_directory=None):
-    
+
     # from seleniumwire import webdriver as wirewebdriver
-    
+
     if proxy:
         options = {
             'proxy': {
@@ -121,7 +123,7 @@ def open_new_browser(headless=False, user_agent=True, proxy=None, download_direc
                 'https': 'http://krfYsk7fDNckFV7f:X90vuBO81YgGbVHu_session-9UDy8DOS_lifetime-30m_streaming-1@geo.iproyal.com:12321',
             }
         }
-    
+
         s_driver = webdriver.Chrome()
         return s_driver
     else:
@@ -130,10 +132,10 @@ def open_new_browser(headless=False, user_agent=True, proxy=None, download_direc
 
 
 def open_browser(headless=False, user_agent=False, proxy=None, download_directory=None):
-    
+
     chrome_options = uc.ChromeOptions()
     # edge_options = webdriver.EdgeOptions()
-    
+
     chrome_options.add_argument("--window-size=1920,1080")
     #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
     # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
@@ -156,7 +158,7 @@ def open_browser(headless=False, user_agent=False, proxy=None, download_director
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
-    
+
     driver = webdriver.Chrome(options=chrome_options)
     # driver = webdriver.Edge(service=edge_service)
     return driver
@@ -258,29 +260,55 @@ def go_to_instagram_signup(driver):
 def get_from_email_from_temp_mail(driver):
 
     driver.get('https://temp-mail.org/en/')
-    random_time_delay(15, 20)
+    # random_time_delay(15, 20)
 
-    try:
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_file:
-            ## Save screenshot in the temporary file
-            temp_filename = temp_file.name
-            driver.execute_script("window.scrollBy(0, 200);")
-            driver.save_screenshot(temp_filename)
+    if CLIPBOARD_FIRST:
+        try:
+            driver.find_element(By.XPATH, "//span[text()='Copy']").click()
+            random_time_delay(min_wait_time, max_wait_time)
+            random_time_delay(min_wait_time, max_wait_time)
+            email_id = pyperclip.paste()
 
-            ## Use EasyOCR to read text from the screenshot
-            reader = easyocr.Reader(['en'], gpu=False)
-            result = reader.readtext(temp_filename)
+        except Exception as e:
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_file:
+                ## Save screenshot in the temporary file
+                temp_filename = temp_file.name
+                driver.execute_script("window.scrollBy(0, 200);")
+                driver.save_screenshot(temp_filename)
 
-        extracted_text = ' '.join([entry[1] for entry in result])
+                ## Use EasyOCR to read text from the screenshot
+                reader = easyocr.Reader(['en'], gpu=False)
+                result = reader.readtext(temp_filename)
 
-        email_id = f"{next(i for i in extracted_text.split() if '@' in i)}"
-        if not email_id.endswith(".com"):
-            email_id += ".com"
-    except Exception as e:
-        # driver.find_element(By.XPATH, "//span[text()='Copy']").click()
-        random_time_delay(min_wait_time, max_wait_time)
-        random_time_delay(min_wait_time, max_wait_time)
-        email_id = pyperclip.paste()
+            extracted_text = ' '.join([entry[1] for entry in result])
+
+            email_id = f"{next(i for i in extracted_text.split() if '@' in i)}"
+            if not email_id.endswith(".com"):
+                email_id += ".com"
+    else:
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_file:
+                ## Save screenshot in the temporary file
+                temp_filename = temp_file.name
+                driver.execute_script("window.scrollBy(0, 200);")
+                driver.save_screenshot(temp_filename)
+
+                ## Use EasyOCR to read text from the screenshot
+                reader = easyocr.Reader(['en'], gpu=False)
+                result = reader.readtext(temp_filename)
+
+            extracted_text = ' '.join([entry[1] for entry in result])
+
+            email_id = f"{next(i for i in extracted_text.split() if '@' in i)}"
+            if not email_id.endswith(".com"):
+                email_id += ".com"
+        except Exception as e:
+            # driver.find_element(By.XPATH, "//span[text()='Copy']").click()
+            random_time_delay(min_wait_time, max_wait_time)
+            random_time_delay(min_wait_time, max_wait_time)
+            email_id = pyperclip.paste()
+
+    random_time_delay(min_wait_time, max_wait_time)
     random_time_delay(min_wait_time, max_wait_time)
 
     return email_id
@@ -431,9 +459,10 @@ if __name__ == '__main__':
 
 
     account_count = 1
-    max_accounts = 10
+    max_accounts = 10000
+    flag = True
 
-    while account_count <= max_accounts:
+    while account_count <= max_accounts and flag:
 
         try:
             try:
@@ -455,3 +484,5 @@ if __name__ == '__main__':
     
         except Exception as e:
             pass
+
+    print("Accounts created: ",account_count)
