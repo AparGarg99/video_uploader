@@ -481,8 +481,10 @@ if __name__ == '__main__':
             if account_created:
                 account_count += 1
                 create_gmail_user_in_db(user_info)
-    
+
         except Exception as e:
             pass
+        finally:
+            random_time_delay(300,600)
 
     print("Accounts created: ",account_count)
