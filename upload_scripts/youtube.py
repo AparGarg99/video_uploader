@@ -55,12 +55,20 @@ PATH_DICT = {
     }
 
 #%%
+DB_HOST = os.environ.get("DB_HOST")
+DB_DATABASE = os.environ.get("DB_DATABASE")
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+DB_PORT = int(os.environ.get('DB_PORT'))
+
+max_connections = 1
+
 db_params = {
-    'host': 'opraah-database.c9qouuiwyuwx.ap-south-1.rds.amazonaws.com',
-    'database': 'opraah',
-    'user': 'postgres',
-    'password': 'VUFPZaluUQk',
-    'port': '5432'
+    'host': DB_HOST,
+    'database': DB_DATABASE,
+    'user': DB_USER,
+    'password': DB_PASSWORD,
+    'port': DB_PORT,
 }
 
 max_connections = 1

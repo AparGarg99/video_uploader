@@ -1,6 +1,3 @@
-# Description
-
-
 # Installation
 1. Download and Install [Anaconda](https://www.anaconda.com/download)
 
@@ -92,3 +89,196 @@ Then press 'F5' key to run file
 # References:
 1. Install Anaconda - https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript
 2. Google Drive API - https://www.youtube.com/watch?v=G_4KUbuwtlM&ab_channel=GeekySid
+
+
+
+
+# Database
+
+There are about 4 tables being used for the bots, 2 tables for instagram and 2 tables for youtube.
+
+Tables:
+
+- insta_accounts
+- insta_video_metadata
+- youtube_accounts
+- youtube_video_metadata
+
+
+### insta_accounts
+___
+| email | password | in_use | last_used | videos_uploaded
+
+ - email -> the registered email id for the insta gram accounts
+ - password -> the registered password for the instagram accounts
+ - in_use -> this is field to represent a mutex lock, so multiple instances of uploading won't upload the same video.
+ - last_used -> timestamp field of when the video account data was last used/updated.
+ - video_uploaded -> The number of videos uploaded in the account. Defaults will be zero.
+
+### insta_video_metadata
+___
+| url | title | tags | description | is_processed
+
+- url -> The google drive link of the video to be uploaded
+- title -> The title/caption of the video.
+- tags -> The tags to be used.
+- description -> Description of the video
+- is_processed -> ENUM Value('Not processed', 'Downloading','Processed', 'Done')
+    
+    - Not processed: This is the default value. Video that have not processed and 
+    - Downloading: When the video is downloading by the bot.
+    - Processing: When the video upload process starts.
+    - Done: The video has been uploaded and won't be processed.
+
+### youtube_accounts
+___
+| email | password | in_use | last_used | videos_uploaded | number | activation_id | insta_account |
+
+ - email -> the registered email id for the insta gram accounts
+ - password -> the registered password for the instagram accounts
+ - in_use -> this is field to represent a mutex lock, so multiple instances of uploading won't upload the same video.
+ - last_used -> timestamp field of when the video account data was last used/updated.
+ - video_uploaded -> The number of videos uploaded in the account. Defaults will be zero.
+ - number -> The number, used to create youtube account if used. Number from sms-activate.
+ - activation_id -> The activation_id for sms-activate.
+ - insta_account -> If the account was used for instagram.
+
+ #### Number, activation_id, insta_account are not used and are not necessary.
+
+ ### youtube_video_metadata
+___
+| url | title | tags | description | is_processed
+
+- url -> The google drive link of the video to be uploaded
+- title -> The title/caption of the video.
+- tags -> The tags to be used.
+- description -> Description of the video
+- is_processed -> ENUM Value('Not processed', 'Downloading','Processed', 'Done')
+    
+    - Not processed: This is the default value. Video that have not processed and 
+    - Downloading: When the video is downloading by the bot.
+    - Processing: When the video upload process starts.
+    - Done: The video has been uploaded and won't be processed.
+
+
+# Instagram Account Creation
+
+## Description
+
+This Python script automates the creation of Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
+
+## Flow
+
+The bot will first open a chrome browser and open instagram.com, then head to the sign up page. For email it will rely on temp-mail or sms-activate. If temp-mail is used it will open a new tab and open temp-mail site and get the email using clipboard. If the clipboard doesn't work it will take a screenshot and get the email from there. Then the email is used in the sign up page for instagram. Once the OTP is generated the OTP will be used for account verification. Once the account is verified it will be saved to the db.
+
+## Configuration
+
+The bot can be configured to use `Proxy`, `SMS-Activate`, `Temp-mail`.
+
+To enable proxy usage, set:
+
+```
+USE_PROXY = True
+```
+### Environment variables
+
+The bot requires the following environment variables.
+
+```
+API_KEY
+DB_HOST
+DB_DATABASE
+DB_USER
+DB_PASSWORD
+DB_PORT
+```
+
+## Setting environment variables
+
+### Windows 
+
+```
+set API_KEY=your_api_key
+set DB_HOST=your_db_host
+set DB_DATABASE=your_db_database
+set DB_USER=your_db_user
+set DB_PASSWORD=your_db_password
+set DB_PORT=your_db_port
+```
+
+### macOS and Linux:
+
+```
+export API_KEY=your_api_key
+export DB_HOST=your_db_host
+export DB_DATABASE=your_db_database
+export DB_USER=your_db_user
+export DB_PASSWORD=your_db_password
+export DB_PORT=your_db_port
+```
+
+### You can only use either SMS-activate or Temp-mail 
+
+To use SMS-Activate
+```
+USE_SMS_ACTIVE = True
+```
+
+To use Temp-mail
+```
+USE_TEMP_MAIL = True
+```
+
+
+# Instagram video uploading
+
+## Description
+
+This bot automates the uploading of videos on Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
+
+## Flow
+
+The bot will open a chrome browser and head towards instagram. It will then fetch the credentials saved in the insta_accounts table where it will check for the videos uploaded and is_use attribute. Then it will take any one account that can be used and updated the is_use attribute to True. Then it will login to the account on instagram start the upload process. If uploaded successfully it will set the value of in_use to False and increment the value of videos_uploaded to True. In case of failure it will revert back.
+
+## Configuration
+
+```
+USE_PROXY : Set this to true if you want proxy to be used. 
+```
+
+### Environment variables
+
+The bot requires the following environment variables.
+
+```
+API_KEY
+DB_HOST
+DB_DATABASE
+DB_USER
+DB_PASSWORD
+DB_PORT
+```
+
+## Setting environment variables
+
+### Windows 
+
+```
+set API_KEY=your_api_key
+set DB_HOST=your_db_host
+set DB_DATABASE=your_db_database
+set DB_USER=your_db_user
+set DB_PASSWORD=your_db_password
+set DB_PORT=your_db_port
+```
+
+### macOS and Linux:
+
+```
+export API_KEY=your_api_key
+export DB_HOST=your_db_host
+export DB_DATABASE=your_db_database
+export DB_USER=your_db_user
+export DB_PASSWORD=your_db_password
+export DB_PORT=your_db_port
+```

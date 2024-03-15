@@ -18,27 +18,33 @@ import psycopg2
 from psycopg2 import pool
 from contextlib import contextmanager
 import re
+import os
 
 #tempmail imports
 import pyperclip
 import easyocr
 
-APIKEY = '2417387b156062A9319d62191b4dcfAd'
+APIKEY = os.environ.get('APIKEY')
 
 USE_PROXY = False
 USE_RANDOM_USER_AGENT = False
-USE_TEMP_MAIL = True
-USE_SMS_ACTIVE = False
-USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL = False
+USE_TEMP_MAIL = False
+USE_SMS_ACTIVE = True
+
+DB_HOST = os.environ.get("DB_HOST")
+DB_DATABASE = os.environ.get("DB_DATABASE")
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+DB_PORT = int(os.environ.get('DB_PORT'))
 
 max_connections = 1
 
 db_params = {
-    'host': 'opraah-database.c9qouuiwyuwx.ap-south-1.rds.amazonaws.com',
-    'database': 'opraah',
-    'user': 'postgres',
-    'password': 'VUFPZaluUQk',
-    'port': '5432'
+    'host': DB_HOST,
+    'database': DB_DATABASE,
+    'user': DB_USER,
+    'password': DB_PASSWORD,
+    'port': DB_PORT,
 }
 
 connection_pool = psycopg2.pool.ThreadedConnectionPool(
@@ -99,13 +105,13 @@ def create_insta_user_in_db(user_info):
             with connection.cursor() as cursor:
                 # SQL query to select a user with less than three videos uploaded
                 insert_query = """
-                    INSERT INTO public.youtube_accounts 
-                    (email, "password", in_use, last_used, videos_uploaded, "number", activation_id, insta_account) 
-                    VALUES (%s, %s, false, CURRENT_TIMESTAMP, 0, %s, %s, false);
+                    INSERT INTO public.insta_accounts 
+                    (email, "password", in_use, last_used, videos_uploaded) 
+                    VALUES (%s, %s, false, CURRENT_TIMESTAMP, 0);
                 """
 
                 # Execute the SELECT query
-                cursor.execute(insert_query, (user_info['email'], user_info['password'], user_info['number'], user_info['activation_id']))
+                cursor.execute(insert_query, (user_info['email'], user_info['password']))
                 connection.commit()
     except Exception as e:
         pass

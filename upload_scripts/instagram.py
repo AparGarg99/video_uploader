@@ -41,12 +41,22 @@ PATH_DICT = {
     'OUTPUT_FILE':  os.path.join(CURRENT_FOLDER, f'output_{curr_date}', 'output_instagram.csv')
     }
 
+DB_HOST = os.environ.get("DB_HOST")
+DB_DATABASE = os.environ.get("DB_DATABASE")
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+DB_PORT = int(os.environ.get('DB_PORT'))
+
+USE_PROXY = True
+
+max_connections = 1
+
 db_params = {
-    'host': 'opraah-database.c9qouuiwyuwx.ap-south-1.rds.amazonaws.com',
-    'database': 'opraah',
-    'user': 'postgres',
-    'password': 'VUFPZaluUQk',
-    'port': '5432'
+    'host': DB_HOST,
+    'database': DB_DATABASE,
+    'user': DB_USER,
+    'password': DB_PASSWORD,
+    'port': DB_PORT,
 }
 
 #%%
@@ -76,7 +86,7 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
         user_agent = ua.chrome + ' ' + ua.os_linux
         chrome_options.add_argument(f'user-agent={user_agent}')
     if proxy:
-        chrome_options.add_argument(f"--load-extension=./proxy_auth_plugin")  
+        chrome_options.add_argument(f"--load-extension=../proxies/proxy_isp")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
@@ -90,7 +100,6 @@ def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=Tru
 # random time delay between requests (anti-blocking technique)
 def random_time_delay(start=10, end=20):
     time.sleep(random.uniform(start, end))
-    
 
 
 def download_video(gdrive_file_url, output_filename):
@@ -163,7 +172,7 @@ def login(driver, email_id, password):
     except Exception as e:
         print("Login Error - ", str(e))
         return False
-    
+
 
 def go_to_upload_page():
     try:
@@ -428,7 +437,7 @@ def check_file_exists(file_path):
 
 #%%
 if __name__=='__main__':
-    
+
     for key, val in PATH_DICT.items():
         if 'DIR' in key:
             os.makedirs(val, exist_ok=True)
@@ -470,7 +479,7 @@ if __name__=='__main__':
                     except:
                         pass
 
-                    driver = open_browser(proxy=True)
+                    driver = open_browser(proxy=USE_PROXY)
                     # try login - can be successful or failed
                     login_status = login(driver, email, password)
                     current_login = email
