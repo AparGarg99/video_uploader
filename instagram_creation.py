@@ -30,7 +30,6 @@ USE_RANDOM_USER_AGENT = False
 USE_TEMP_MAIL = True
 USE_SMS_ACTIVE = False
 USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL = False
-CLIPBOARD_FIRST = True
 
 max_connections = 1
 
@@ -92,8 +91,7 @@ def get_gmail_account():
         print(f"Error: {e}")
         return None
 
-
-def create_gmail_user_in_db(user_info):
+def create_insta_user_in_db(user_info):
     try:
         # Connect to the database using the context manager
         with connect_to_database() as connection:
@@ -154,7 +152,7 @@ def open_browser(headless=False, user_agent=False, proxy=None, download_director
         user_agent = ua.random
         chrome_options.add_argument(f'user-agent={user_agent}')
     if proxy:
-        chrome_options.add_argument("--load-extension=./proxy_residential")  
+        chrome_options.add_argument("--load-extension=./proxy_isp")  
     if download_directory:
         preferences = {"download.default_directory": download_directory}
         chrome_options.add_experimental_option("prefs", preferences)
@@ -262,51 +260,28 @@ def get_from_email_from_temp_mail(driver):
     driver.get('https://temp-mail.org/en/')
     # random_time_delay(15, 20)
 
-    if CLIPBOARD_FIRST:
-        try:
-            driver.find_element(By.XPATH, "//span[text()='Copy']").click()
-            random_time_delay(min_wait_time, max_wait_time)
-            random_time_delay(min_wait_time, max_wait_time)
-            email_id = pyperclip.paste()
+    try:
+        driver.find_element(By.XPATH, "//span[text()='Copy']").click()
+        random_time_delay(min_wait_time, max_wait_time)
+        random_time_delay(min_wait_time, max_wait_time)
+        email_id = pyperclip.paste()
 
-        except Exception as e:
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_file:
-                ## Save screenshot in the temporary file
-                temp_filename = temp_file.name
-                driver.execute_script("window.scrollBy(0, 200);")
-                driver.save_screenshot(temp_filename)
+    except Exception as e:
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_file:
+            ## Save screenshot in the temporary file
+            temp_filename = temp_file.name
+            driver.save_screenshot(temp_filename)
 
-                ## Use EasyOCR to read text from the screenshot
-                reader = easyocr.Reader(['en'], gpu=False)
-                result = reader.readtext(temp_filename)
+            ## Use EasyOCR to read text from the screenshot
+            reader = easyocr.Reader(['en'], gpu=False)
+            result = reader.readtext(temp_filename)
 
-            extracted_text = ' '.join([entry[1] for entry in result])
+        extracted_text = ' '.join([entry[1] for entry in result])
 
-            email_id = f"{next(i for i in extracted_text.split() if '@' in i)}"
-            if not email_id.endswith(".com"):
-                email_id += ".com"
-    else:
-        try:
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_file:
-                ## Save screenshot in the temporary file
-                temp_filename = temp_file.name
-                driver.execute_script("window.scrollBy(0, 200);")
-                driver.save_screenshot(temp_filename)
+        email_id = f"{next(i for i in extracted_text.split() if '@' in i)}"
+        if not email_id.endswith(".com"):
+            email_id += ".com"
 
-                ## Use EasyOCR to read text from the screenshot
-                reader = easyocr.Reader(['en'], gpu=False)
-                result = reader.readtext(temp_filename)
-
-            extracted_text = ' '.join([entry[1] for entry in result])
-
-            email_id = f"{next(i for i in extracted_text.split() if '@' in i)}"
-            if not email_id.endswith(".com"):
-                email_id += ".com"
-        except Exception as e:
-            # driver.find_element(By.XPATH, "//span[text()='Copy']").click()
-            random_time_delay(min_wait_time, max_wait_time)
-            random_time_delay(min_wait_time, max_wait_time)
-            email_id = pyperclip.paste()
 
     random_time_delay(min_wait_time, max_wait_time)
     random_time_delay(min_wait_time, max_wait_time)
@@ -341,18 +316,13 @@ def create_account(driver, user_info):
 
     if USE_TEMP_MAIL:
     ## via temp mail
-        if USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL:
-            another_driver = open_new_browser()
-            email = get_from_email_from_temp_mail(another_driver)
-            user_info['email'] = email
-        else:
-            email = get_from_email_from_temp_mail(driver)
-            ## create new window for instagram
-            driver.execute_script("window.open('about:blank', '_blank');")
-            random_time_delay(min_wait_time, max_wait_time)
-            driver.switch_to.window(driver.window_handles[-1])
+        email = get_from_email_from_temp_mail(driver)
+        ## create new window for instagram
+        driver.execute_script("window.open('about:blank', '_blank');")
+        random_time_delay(min_wait_time, max_wait_time)
+        driver.switch_to.window(driver.window_handles[-1])
 
-            user_info['email'] = email
+        user_info['email'] = email
 
     go_to_instagram_signup(driver)
     random_time_delay(min_wait_time, max_wait_time)
@@ -394,10 +364,7 @@ def create_account(driver, user_info):
     if USE_TEMP_MAIL:
         # driver.execute_script("window.open('about:blank', '_blank');")
         temp_mail_driver = driver
-        if USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL:
-            temp_mail_driver = another_driver
-        else:
-            temp_mail_driver.switch_to.window(temp_mail_driver.window_handles[0])
+        temp_mail_driver.switch_to.window(temp_mail_driver.window_handles[0])
         random_time_delay(15, 20)
         while datetime.now() < start_time + timedelta(minutes=10):
             temp_mail_driver.execute_script("window.scrollBy(0, 700);")
@@ -416,10 +383,7 @@ def create_account(driver, user_info):
                 random_time_delay(start=25,end=35)
                 continue
             break
-        if USE_ANOTHER_BRWOSER_FOR_TEMP_MAIL:
-            driver.find_element(By.XPATH, "//input[@name='confirmationCode' or @name='email_confirmation_code']").send_keys(otp)
-        else:
-            temp_mail_driver.switch_to.window(driver.window_handles[-1])
+        temp_mail_driver.switch_to.window(driver.window_handles[-1])
         random_time_delay(start=5,end=8)
     if USE_SMS_ACTIVE:
     # For SMS-Activate API
@@ -463,7 +427,6 @@ if __name__ == '__main__':
     flag = True
 
     while account_count <= max_accounts and flag:
-
         try:
             try:
                 driver.quit()
@@ -480,7 +443,7 @@ if __name__ == '__main__':
                 pass
             if account_created:
                 account_count += 1
-                create_gmail_user_in_db(user_info)
+                create_insta_user_in_db(user_info)
 
         except Exception as e:
             pass
