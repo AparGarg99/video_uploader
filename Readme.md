@@ -251,7 +251,6 @@ USE_PROXY : Set this to true if you want proxy to be used.
 The bot requires the following environment variables.
 
 ```
-API_KEY
 DB_HOST
 DB_DATABASE
 DB_USER
@@ -264,7 +263,6 @@ DB_PORT
 ### Windows 
 
 ```
-set API_KEY=your_api_key
 set DB_HOST=your_db_host
 set DB_DATABASE=your_db_database
 set DB_USER=your_db_user
@@ -275,7 +273,6 @@ set DB_PORT=your_db_port
 ### macOS and Linux:
 
 ```
-export API_KEY=your_api_key
 export DB_HOST=your_db_host
 export DB_DATABASE=your_db_database
 export DB_USER=your_db_user
