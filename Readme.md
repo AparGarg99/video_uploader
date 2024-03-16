@@ -139,7 +139,10 @@ USE_PROXY : Set this to true if you want proxy to be used.
 
 # Database
 
+The main database is `opraah` and the tables exists in `public`
+
 There are about 4 tables being used for the bots, 2 tables for instagram and 2 tables for youtube.
+
 
 Tables:
 
