@@ -19,6 +19,7 @@ import undetected_chromedriver as uc
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from fake_useragent import UserAgent
+from dotenv import load_dotenv
 #%%
 
 #################### User input ####################
@@ -41,11 +42,11 @@ PATH_DICT = {
     'OUTPUT_FILE':  os.path.join(CURRENT_FOLDER, f'output_{curr_date}', 'output_instagram.csv')
     }
 
-DB_HOST = os.environ.get("DB_HOST")
-DB_DATABASE = os.environ.get("DB_DATABASE")
-DB_USER = os.environ.get("DB_USER")
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
-DB_PORT = int(os.environ.get('DB_PORT'))
+DB_HOST = os.getenv("DB_HOST")
+DB_DATABASE = os.getenv("DB_DATABASE")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PORT = int(os.getenv('DB_PORT'))
 
 USE_PROXY = True
 

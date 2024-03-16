@@ -19,23 +19,28 @@ from psycopg2 import pool
 from contextlib import contextmanager
 import re
 import os
+from dotenv import load_dotenv
+
 
 #tempmail imports
 import pyperclip
 import easyocr
 
-APIKEY = os.environ.get('APIKEY')
+load_dotenv('.env')
+
+
+APIKEY = os.getenv('API_KEY')
 
 USE_PROXY = False
 USE_RANDOM_USER_AGENT = False
 USE_TEMP_MAIL = False
 USE_SMS_ACTIVE = True
 
-DB_HOST = os.environ.get("DB_HOST")
-DB_DATABASE = os.environ.get("DB_DATABASE")
-DB_USER = os.environ.get("DB_USER")
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
-DB_PORT = int(os.environ.get('DB_PORT'))
+DB_HOST = os.getenv("DB_HOST")
+DB_DATABASE = os.getenv("DB_DATABASE")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PORT = int(os.getenv('DB_PORT'))
 
 max_connections = 1
 
