@@ -1,13 +1,8 @@
 !.gitignore
-!instagram.py
-!Readme.md
-!requirements.txt
-!setup_credentials.py
-!youtube.py
+
 /venv/
 /output*
 /chrome*
 .DS_store
 .settings
 launch.json
-/youtube
