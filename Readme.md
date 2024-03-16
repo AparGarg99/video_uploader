@@ -72,17 +72,6 @@ cd <project path>
 conda activate "video_uploader"
 ```
 
-4. Execute
-```
-python youtube.py
-```
-
-OR
-
-```
-spyder
-```
-Then press 'F5' key to run file
 
 ## Instagram Account Creation
 
@@ -145,12 +134,6 @@ The bot will open a chrome browser and head towards instagram. It will then fetc
 ```
 USE_PROXY : Set this to true if you want proxy to be used. 
 ```
-
-
-# References:
-1. Install Anaconda - https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript
-2. Google Drive API - https://www.youtube.com/watch?v=G_4KUbuwtlM&ab_channel=GeekySid
-
 
 
 
@@ -223,3 +206,8 @@ ___
 
 
 
+
+
+# References:
+1. Install Anaconda - https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript
+2. Google Drive API - https://www.youtube.com/watch?v=G_4KUbuwtlM&ab_channel=GeekySid
