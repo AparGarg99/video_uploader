@@ -1,8 +1,16 @@
-!.gitignore
+*
 
-/venv/
-/output*
-/chrome*
-.DS_store
-.settings
-launch.json
+# folders
+!Miscellaneous/
+!Miscellaneous/*
+!proxies/
+!proxies/*
+
+# files
+!.env
+!.gitignore
+!1_instagram_account_creation.py
+!2_instagram_upload.py
+!Readme.md
+!requirements.txt
+!setup_credentials.py
