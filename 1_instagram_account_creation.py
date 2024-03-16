@@ -266,13 +266,43 @@ def go_to_instagram_signup(driver):
 
     return driver
 
+def click_on_signup(driver):
+    try:
+        driver.find_element(By.XPATH, "//button[text()='Sign up']").click()
+        return
+    except Exception as e:
+        pass
+    try:
+        driver.find_element(By.XPATH, "//button[text()='Next']").click()
+        return
+    except Exception as e:
+        pass
+    try:
+        driver.find_element(By.XPATH, "//button[text()='Sign Up']").click()
+        return
+    except Exception as e:
+        pass
+
+def confirm_on_instagram(driver):
+    try:
+        driver.find_element(By.XPATH, "//*[text()='Confirm']").click()
+        return
+    except Exception as e:
+        pass
+
+    try:
+        driver.find_element(By.XPATH, "//*[text()='Next']").click()
+    except Exception as e:
+        return
+        pass
+
 def get_from_email_from_temp_mail(driver):
 
     driver.get('https://temp-mail.org/en/')
     # random_time_delay(15, 20)
 
     try:
-        driver.find_element(By.XPATH, "//span[text()='Copy']").click()
+        driver.find_element(By.XPATH, '//*[@id="tm-body"]/div[1]/div/div/div[2]/div[1]/form/div[2]/button').click()
         random_time_delay(min_wait_time, max_wait_time)
         random_time_delay(min_wait_time, max_wait_time)
         email_id = pyperclip.paste()
@@ -347,7 +377,7 @@ def create_account(driver, user_info):
     driver.find_element(By.XPATH, "//input[@name='password']").send_keys(user_info['password'])
     random_time_delay(start=1,end=3)
     random_time_delay(start=7,end=11)
-    driver.find_element(By.XPATH, "//button[text()='Sign Up' or text()='Next']").click()
+    click_on_signup(driver)
     random_time_delay(start=4,end=7)
     # random_time_delay(start=4,end=7)
     random_time_delay(start=7,end=11)
@@ -413,7 +443,7 @@ def create_account(driver, user_info):
     random_time_delay(start=5,end=8)
 
     try:
-        driver.find_element(By.XPATH, "//*[text()='Confirm' or text()='Next']").click()
+        confirm_on_instagram(driver)
         random_time_delay(min_wait_time,max_wait_time)
     except Exception as e:
         pass
