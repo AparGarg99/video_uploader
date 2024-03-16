@@ -15,19 +15,33 @@ from smsactivate.api import SMSActivateAPI
 import psycopg2
 from psycopg2 import pool
 from contextlib import contextmanager
+from dotenv import load_dotenv
+import os
 
-APIKEY = '2417387b156062A9319d62191b4dcfAd'
+load_dotenv('.env')
+
+APIKEY = os.getenv('API_KEY')
+
+USE_PROXY = False
+USE_RANDOM_USER_AGENT = False
+USE_TEMP_MAIL = False
+USE_SMS_ACTIVE = True
+
+DB_HOST = os.getenv("DB_HOST")
+DB_DATABASE = os.getenv("DB_DATABASE")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PORT = int(os.getenv('DB_PORT'))
 
 max_connections = 1
 
 db_params = {
-    'host': 'opraah-database.c9qouuiwyuwx.ap-south-1.rds.amazonaws.com',
-    'database': 'opraah',
-    'user': 'postgres',
-    'password': 'VUFPZaluUQk',
-    'port': '5432'
+    'host': DB_HOST,
+    'database': DB_DATABASE,
+    'user': DB_USER,
+    'password': DB_PASSWORD,
+    'port': DB_PORT,
 }
-
 connection_pool = psycopg2.pool.ThreadedConnectionPool(
     minconn=1,
     maxconn=max_connections,
