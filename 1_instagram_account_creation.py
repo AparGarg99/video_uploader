@@ -308,7 +308,7 @@ def get_from_email_from_temp_mail(driver):
         email_id = pyperclip.paste()
 
     except Exception as e:
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_file:
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
             ## Save screenshot in the temporary file
             temp_filename = temp_file.name
             driver.save_screenshot(temp_filename)
