@@ -32,7 +32,9 @@ from sqlalchemy import create_engine
 from contextlib import contextmanager
 from datetime import datetime
 from fake_useragent import UserAgent
+from dotenv import load_dotenv
 #%%
+load_dotenv('.env')
 
 #################### User input ####################
 min_wait_time = 6
@@ -55,11 +57,27 @@ PATH_DICT = {
     }
 
 #%%
-DB_HOST = os.environ.get("DB_HOST")
-DB_DATABASE = os.environ.get("DB_DATABASE")
-DB_USER = os.environ.get("DB_USER")
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
-DB_PORT = int(os.environ.get('DB_PORT'))
+
+USE_PROXY = False
+USE_RANDOM_USER_AGENT = False
+USE_TEMP_MAIL = False
+USE_SMS_ACTIVE = True
+
+DB_HOST = os.getenv("DB_HOST")
+DB_DATABASE = os.getenv("DB_DATABASE")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PORT = int(os.getenv('DB_PORT'))
+
+max_connections = 1
+
+db_params = {
+    'host': DB_HOST,
+    'database': DB_DATABASE,
+    'user': DB_USER,
+    'password': DB_PASSWORD,
+    'port': DB_PORT,
+}
 
 max_connections = 1
 
