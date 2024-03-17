@@ -82,6 +82,8 @@ def connect_to_database():
     finally:
         connection_pool.putconn(connection)  # Release the connection back to the pool
 
+
+
 def get_and_update_user():
     try:
         # Connect to the database using the context manager
@@ -137,6 +139,8 @@ def get_and_update_user():
         print(f"Error: {e}")
         return None
 
+
+
 def fetch_video():
     try:
         # Connect to the database using the context manager
@@ -169,6 +173,8 @@ def fetch_video():
         print(f"Error: {e}")
         return None
 
+
+
 def update_is_processed(url, new_status='DOWNLOADING'):
     try:
         # Connect to the database using the context manager
@@ -193,6 +199,8 @@ def update_is_processed(url, new_status='DOWNLOADING'):
     except Exception as e:
         # Handle any exceptions
         print(f"Error: {e}")
+
+
 
 def update_user_video_count(email, video_count):
     try:
@@ -220,6 +228,8 @@ def update_user_video_count(email, video_count):
         # Handle any exceptions
         print(f"Error: {e}")
 
+
+############################# SELENIUM UTILS #############################
 def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):
     chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
     
@@ -284,6 +294,8 @@ def login(driver, email_id, password):
         print("Login Error - ", str(e))
         return False
 
+
+
 def go_to_homepage(driver):
     # go to homepage
     driver.get("https://www.instagram.com")
@@ -307,6 +319,7 @@ def go_to_homepage(driver):
             pass
 
 
+
 def go_to_upload_page():
     try:
         # Click on 'Create' button in top right corner
@@ -320,6 +333,7 @@ def go_to_upload_page():
     except Exception as e:
         print("Open upload page failed - ", str(e))
         return False
+
 
 
 def upload_video(captions):
@@ -358,6 +372,7 @@ def upload_video(captions):
         return False
 
 
+
 def select_file(video_path):
     try:
         absolute_path = os.path.abspath(video_path)
@@ -375,6 +390,8 @@ def select_file(video_path):
     except Exception as e:
         print("File selection failed - ", str(e))
         return False
+
+
 
 def logout(driver):
     try:
@@ -399,9 +416,12 @@ def logout(driver):
         print("Logout Error - ", str(e))
         return False
 
+
+
 # random time delay between requests (anti-blocking technique)
 def random_time_delay(start=10, end=20):
     time.sleep(random.uniform(start, end))
+
 
 
 ############################# FILE UTILS #############################
@@ -426,6 +446,7 @@ def download_video(gdrive_file_url, output_filename):
         return False
 
 
+
 def extract_file_id(google_drive_link):
     link_parts = google_drive_link.split('/')
     # Extract the file ID from the next part in the link
@@ -434,8 +455,10 @@ def extract_file_id(google_drive_link):
     return file_id
 
 
+
 def check_file_exists(file_path):
     return os.path.exists(file_path)
+
 
 
 #%%
