@@ -1,9 +1,10 @@
 from contextlib import contextmanager
+#%%
 import os
-#CURRENT_FOLDER = r'C:\Users\aparg\Desktop\opraahfx'
-# CURRENT_FOLDER = r'C:\Users\apar\Desktop\oprahfx'
-CURRENT_FOLDER = './'
+CURRENT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 os.chdir(CURRENT_FOLDER)
+
+#%%
 
 from datetime import date, datetime
 from pydrive.auth import GoogleAuth
@@ -15,6 +16,7 @@ import time
 from selenium import webdriver
 import psycopg2
 from psycopg2 import pool
+from contextlib import contextmanager
 import undetected_chromedriver as uc
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -26,11 +28,19 @@ from dotenv import load_dotenv
 min_wait_time = 5
 max_wait_time = 7
 
-videos_per_account = 1
+videos_per_account = 3
+
+USE_PROXY = True
+
+DB_HOST = os.getenv("DB_HOST")
+DB_DATABASE = os.getenv("DB_DATABASE")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PORT = int(os.getenv('DB_PORT'))
+
 
 #################### File paths ####################
 curr_date = date.today().strftime("%d-%m-%Y")
-
 PATH_DICT = {
     'PROJECT_DIR': CURRENT_FOLDER,
     
@@ -42,13 +52,7 @@ PATH_DICT = {
     'OUTPUT_FILE':  os.path.join(CURRENT_FOLDER, f'output_{curr_date}', 'output_instagram.csv')
     }
 
-DB_HOST = os.getenv("DB_HOST")
-DB_DATABASE = os.getenv("DB_DATABASE")
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_PORT = int(os.getenv('DB_PORT'))
-
-USE_PROXY = True
+#%%
 
 max_connections = 1
 
@@ -60,224 +64,15 @@ db_params = {
     'port': DB_PORT,
 }
 
-#%%
-
-
-def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):
-    chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
-    
-    chrome_options = uc.ChromeOptions()
-    # chrome_options.binary_location = chrome_binary_path
-    
-    chrome_options.add_argument("--window-size=1920,1080")
-    #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
-    # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
-    #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
-    chrome_options.add_argument("--mute-audio") # Mute system audio
-    #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
-    #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
-    #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
-    chrome_options.add_argument('--disable-web-security')
-    
-    if headless:
-        chrome_options.add_argument("--headless")
-    if user_agent:
-        ua = UserAgent()
-        user_agent = ua.chrome + ' ' + ua.os_linux
-        chrome_options.add_argument(f'user-agent={user_agent}')
-    if proxy:
-        chrome_options.add_argument(f"--load-extension=../proxies/proxy_isp")  
-    if download_directory:
-        preferences = {"download.default_directory": download_directory}
-        chrome_options.add_experimental_option("prefs", preferences)
-    
-    driver = webdriver.Chrome(options=chrome_options)
-    # driver.execute_script("return document.querySelector('extensions-manager').shadowRoot.querySelector('#viewManager > extensions-detail-view.active').shadowRoot.querySelector('div#container.page-container > div.page-content > div#options-section extensions-toggle-row#allow-incognito').shadowRoot.querySelector('label#label input').click()")
-
-    return driver
-
-
-# random time delay between requests (anti-blocking technique)
-def random_time_delay(start=10, end=20):
-    time.sleep(random.uniform(start, end))
-
-
-def download_video(gdrive_file_url, output_filename):
-    try:
-        # Authenticate with your Google Drive credentials
-        gauth = GoogleAuth()
-        gauth.LocalWebserverAuth()  # Opens a web page to authenticate
-        drive = GoogleDrive(gauth)
-    
-        # Extract the file ID from the URL
-        file_id = gdrive_file_url.split("/")[-2]
-    
-        # Get the file
-        file = drive.CreateFile({'id': file_id})
-        file.GetContentFile(output_filename)
-    
-        return True
-    
-    except Exception as e:
-        print("Video download failed - ", str(e))
-        return False
-
-def go_to_homepage(driver):
-    # go to homepage
-    driver.get("https://www.instagram.com")
-
-    # wait to load
-    random_time_delay(min_wait_time, max_wait_time)
-    
-    
-    # Click on cookies
-    try:
-        driver.find_element(By.XPATH, "//button[text()='Allow all cookies']").click()
-    except:
-        pass
-    
-    # Skip turn on notifications page (if appears)
-    for _ in range(4):
-        try:
-            driver.find_element(By.XPATH, "//*[text()='Not Now']").click()
-            random_time_delay(min_wait_time, max_wait_time)
-        except:
-            pass
-
-def login(driver, email_id, password):
-    try:
-        # We need this when we work with multiple accounts 
-        driver.delete_all_cookies()
-        
-        # go to homepage
-        go_to_homepage(driver)
-
-        # Locate the email input field and enter your email
-        driver.find_element(By.NAME, "username").send_keys(email_id)
-
-        # Locate the password input field and enter your password
-        driver.find_element(By.NAME, "password").send_keys(password)
-
-        # Click the "Next" button to log in
-        driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
-
-        # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
-        
-        # go to homepage
-        go_to_homepage(driver)
-        
-        return True
-
-    except Exception as e:
-        print("Login Error - ", str(e))
-        return False
-
-
-def go_to_upload_page():
-    try:
-        # Click on 'Create' button in top right corner
-        driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]').click()
-        
-        # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
-        
-        return True
-        
-    except Exception as e:
-        print("Open upload page failed - ", str(e))
-        return False
-
-
-def select_file(video_path):
-    try:
-        absolute_path = os.path.abspath(video_path)
-        # Click on 'Select files' button to choose files from desktop
-        driver.find_element(By.CSS_SELECTOR, "input[type='file']").send_keys(absolute_path)
-        
-        # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
-        
-        # wait to load
-        random_time_delay(min_wait_time*2, max_wait_time*2)
-        
-        return True
-    
-    except Exception as e:
-        print("File selection failed - ", str(e))
-        return False
-
-
-
-def upload_video(captions):
-    try:
-        # Info box - Video posts are now shared as reels
-        try:
-            driver.find_element(By.XPATH, "//*[text()='OK']").click()
-            random_time_delay(min_wait_time, max_wait_time)
-        except:
-            pass
-        
-        # Click on 'Next' button to go to next page
-        for _ in range(2):
-            driver.find_element(By.XPATH, "//*[text()='Next']").click()
-            random_time_delay(min_wait_time, max_wait_time)
-
-        # Input captions
-        driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Write a caption..."]').send_keys(captions)
-
-        # Publish video
-        driver.find_element(By.XPATH, "//*[text()='Share']").click()
-        
-        # wait until reel is shared
-        while True:
-            try:
-                driver.find_element(By.XPATH, "//*[text()='Reel shared']")
-                break
-            except:
-                random_time_delay(min_wait_time, max_wait_time)
-                pass
-            
-        return True
-    
-    except Exception as e:
-        print("Video upload failed - ", str(e))
-        return False
-
-
-
-def logout(driver):
-    try:
-        # go to homepage
-        go_to_homepage(driver)
-        
-        # click on 'Settings' button
-        driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Settings').click()
-        
-        # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
-        
-        # click on 'Sign out'
-        driver.find_element(By.XPATH, "//*[text()='Log out']").click()
-                
-        # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
-        
-        return True
-    
-    except Exception as e:
-        print("Logout Error - ", str(e))
-        return False
-
-max_connections = 1
-
 connection_pool = psycopg2.pool.ThreadedConnectionPool(
     minconn=1,
     maxconn=max_connections,
     **db_params
 )
 
+
+#%%
+############################# DB UTILS #############################
 @contextmanager
 def connect_to_database():
     connection = connection_pool.getconn()
@@ -286,7 +81,6 @@ def connect_to_database():
         yield connection  # Provide the connection to the caller
     finally:
         connection_pool.putconn(connection)  # Release the connection back to the pool
-
 
 def get_and_update_user():
     try:
@@ -426,6 +220,212 @@ def update_user_video_count(email, video_count):
         # Handle any exceptions
         print(f"Error: {e}")
 
+def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):
+    chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
+    
+    chrome_options = uc.ChromeOptions()
+    # chrome_options.binary_location = chrome_binary_path
+    
+    chrome_options.add_argument("--window-size=1920,1080")
+    #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
+    # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
+    #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
+    chrome_options.add_argument("--mute-audio") # Mute system audio
+    #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
+    #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
+    # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
+    #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
+    chrome_options.add_argument('--disable-web-security')
+    
+    if headless:
+        chrome_options.add_argument("--headless")
+    if user_agent:
+        ua = UserAgent()
+        user_agent = ua.chrome + ' ' + ua.os_linux
+        chrome_options.add_argument(f'user-agent={user_agent}')
+    if proxy:
+        chrome_options.add_argument(f"--load-extension=./proxies/proxy_isp")  
+    if download_directory:
+        preferences = {"download.default_directory": download_directory}
+        chrome_options.add_experimental_option("prefs", preferences)
+    
+    driver = webdriver.Chrome(options=chrome_options)
+    # driver.execute_script("return document.querySelector('extensions-manager').shadowRoot.querySelector('#viewManager > extensions-detail-view.active').shadowRoot.querySelector('div#container.page-container > div.page-content > div#options-section extensions-toggle-row#allow-incognito').shadowRoot.querySelector('label#label input').click()")
+
+    return driver
+
+
+def login(driver, email_id, password):
+    try:
+        # We need this when we work with multiple accounts 
+        driver.delete_all_cookies()
+        
+        # go to homepage
+        go_to_homepage(driver)
+
+        # Locate the email input field and enter your email
+        driver.find_element(By.NAME, "username").send_keys(email_id)
+
+        # Locate the password input field and enter your password
+        driver.find_element(By.NAME, "password").send_keys(password)
+
+        # Click the "Next" button to log in
+        driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+
+        # wait to load
+        random_time_delay(min_wait_time, max_wait_time)
+        
+        # go to homepage
+        go_to_homepage(driver)
+        
+        return True
+
+    except Exception as e:
+        print("Login Error - ", str(e))
+        return False
+
+def go_to_homepage(driver):
+    # go to homepage
+    driver.get("https://www.instagram.com")
+
+    # wait to load
+    random_time_delay(min_wait_time, max_wait_time)
+    
+    
+    # Click on cookies
+    try:
+        driver.find_element(By.XPATH, "//button[text()='Allow all cookies']").click()
+    except:
+        pass
+    
+    # Skip turn on notifications page (if appears)
+    for _ in range(4):
+        try:
+            driver.find_element(By.XPATH, "//*[text()='Not Now']").click()
+            random_time_delay(min_wait_time, max_wait_time)
+        except:
+            pass
+
+
+def go_to_upload_page():
+    try:
+        # Click on 'Create' button in top right corner
+        driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]').click()
+        
+        # wait to load
+        random_time_delay(min_wait_time, max_wait_time)
+        
+        return True
+        
+    except Exception as e:
+        print("Open upload page failed - ", str(e))
+        return False
+
+
+def upload_video(captions):
+    try:
+        # Info box - Video posts are now shared as reels
+        try:
+            driver.find_element(By.XPATH, "//*[text()='OK']").click()
+            random_time_delay(min_wait_time, max_wait_time)
+        except:
+            pass
+        
+        # Click on 'Next' button to go to next page
+        for _ in range(2):
+            driver.find_element(By.XPATH, "//*[text()='Next']").click()
+            random_time_delay(min_wait_time, max_wait_time)
+
+        # Input captions
+        driver.find_element(By.CSS_SELECTOR, 'div[aria-label="Write a caption..."]').send_keys(captions)
+
+        # Publish video
+        driver.find_element(By.XPATH, "//*[text()='Share']").click()
+        
+        # wait until reel is shared
+        while True:
+            try:
+                driver.find_element(By.XPATH, "//*[text()='Reel shared']")
+                break
+            except:
+                random_time_delay(min_wait_time, max_wait_time)
+                pass
+            
+        return True
+    
+    except Exception as e:
+        print("Video upload failed - ", str(e))
+        return False
+
+
+def select_file(video_path):
+    try:
+        absolute_path = os.path.abspath(video_path)
+        # Click on 'Select files' button to choose files from desktop
+        driver.find_element(By.CSS_SELECTOR, "input[type='file']").send_keys(absolute_path)
+        
+        # wait to load
+        random_time_delay(min_wait_time, max_wait_time)
+        
+        # wait to load
+        random_time_delay(min_wait_time*2, max_wait_time*2)
+        
+        return True
+    
+    except Exception as e:
+        print("File selection failed - ", str(e))
+        return False
+
+def logout(driver):
+    try:
+        # go to homepage
+        go_to_homepage(driver)
+        
+        # click on 'Settings' button
+        driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="Settings').click()
+        
+        # wait to load
+        random_time_delay(min_wait_time, max_wait_time)
+        
+        # click on 'Sign out'
+        driver.find_element(By.XPATH, "//*[text()='Log out']").click()
+                
+        # wait to load
+        random_time_delay(min_wait_time, max_wait_time)
+        
+        return True
+    
+    except Exception as e:
+        print("Logout Error - ", str(e))
+        return False
+
+# random time delay between requests (anti-blocking technique)
+def random_time_delay(start=10, end=20):
+    time.sleep(random.uniform(start, end))
+
+
+############################# FILE UTILS #############################
+def download_video(gdrive_file_url, output_filename):
+    try:
+        # Authenticate with your Google Drive credentials
+        gauth = GoogleAuth()
+        gauth.LocalWebserverAuth()  # Opens a web page to authenticate
+        drive = GoogleDrive(gauth)
+    
+        # Extract the file ID from the URL
+        file_id = gdrive_file_url.split("/")[-2]
+    
+        # Get the file
+        file = drive.CreateFile({'id': file_id})
+        file.GetContentFile(output_filename)
+    
+        return True
+    
+    except Exception as e:
+        print("Video download failed - ", str(e))
+        return False
+
+
 def extract_file_id(google_drive_link):
     link_parts = google_drive_link.split('/')
     # Extract the file ID from the next part in the link
@@ -433,8 +433,10 @@ def extract_file_id(google_drive_link):
 
     return file_id
 
+
 def check_file_exists(file_path):
     return os.path.exists(file_path)
+
 
 #%%
 if __name__=='__main__':
