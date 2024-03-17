@@ -1,7 +1,7 @@
 #%%
 import os
-project_dir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(project_dir)
+CURRENT_FOLDER = os.path.dirname(os.path.abspath(__file__))
+os.chdir(CURRENT_FOLDER)
 
 #%%
 import random
@@ -27,8 +27,7 @@ load_dotenv()
 
 #%%
 
-USE_PROXY = True
-USE_RANDOM_USER_AGENT = True
+USE_PROXY = False
 USE_TEMP_MAIL = True
 USE_SMS_ACTIVE = False
 
@@ -39,7 +38,12 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_PORT = int(os.getenv('DB_PORT'))
 APIKEY = os.getenv('API_KEY')
 
-max_connections = 1
+min_wait_time = 5
+max_wait_time = 7
+
+max_accounts = 10
+
+#%%
 
 db_params = {
     'host': DB_HOST,
@@ -51,14 +55,9 @@ db_params = {
 
 connection_pool = psycopg2.pool.ThreadedConnectionPool(
     minconn=1,
-    maxconn=max_connections,
+    maxconn=1,
     **db_params
 )
-
-min_wait_time = 5
-max_wait_time = 7
-
-max_accounts = 10
 
 #%%
 
@@ -66,11 +65,12 @@ max_accounts = 10
 @contextmanager
 def connect_to_database():
     connection = connection_pool.getconn()
-
     try:
-        yield connection  # Provide the connection to the caller
+        # Provide the connection to the caller
+        yield connection
     finally:
-        connection_pool.putconn(connection)  # Release the connection back to the pool
+        # Release the connection back to the pool
+        connection_pool.putconn(connection)
 
 
 
@@ -96,39 +96,19 @@ def create_insta_user_in_db(user_info):
 
 
 ############################# SELENIUM UTILS #############################
-def open_browser(headless=False, user_agent=False, proxy=None, download_directory=None):
+def open_browser(user_agent=False, proxy=False):
     chrome_options = uc.ChromeOptions()
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--mute-audio") # Mute system audio
     chrome_options.add_argument("--enable-clipboard")
-    if headless:
-        chrome_options.add_argument("--headless")
     if user_agent:
         ua = UserAgent()
         user_agent = ua.random
         chrome_options.add_argument(f'user-agent={user_agent}')
     if proxy:
-        chrome_options.add_argument(f"--load-extension={project_dir}/proxies/proxy_isp")
-    if download_directory:
-        preferences = {"download.default_directory": download_directory}
-        chrome_options.add_experimental_option("prefs", preferences)
-
+        chrome_options.add_argument(f"--load-extension={CURRENT_FOLDER}/proxies/proxy_isp")
     driver = webdriver.Chrome(options=chrome_options)
     return driver
 
-
-
-def open_browser_for_temp_mail(headless=False, user_agent=False, proxy=None, download_directory=None):
-    chrome_options = uc.ChromeOptions()
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--mute-audio") # Mute system audio
-    chrome_options.add_argument("--enable-clipboard")
-    if download_directory:
-        preferences = {"download.default_directory": download_directory}
-        chrome_options.add_experimental_option("prefs", preferences)
-
-    temp_mail_driver = webdriver.Chrome(options=chrome_options)
-    return temp_mail_driver
 
 
 def random_time_delay(start=10, end=20):
@@ -302,14 +282,10 @@ def create_account(driver, user_info):
     
     
         if USE_TEMP_MAIL:
-            temp_mail_driver = open_browser_for_temp_mail()
+            temp_mail_driver = open_browser(user_agent=False, proxy=False)
+            random_time_delay(min_wait_time, max_wait_time)
             email = get_email_tempmail(temp_mail_driver)
-            
             user_info['email'] = email
-            # driver.execute_script("window.open('about:blank', '_blank');") ## create new window for instagram
-            random_time_delay(min_wait_time, max_wait_time)
-            # driver.switch_to.window(driver.window_handles[-1])
-            random_time_delay(min_wait_time, max_wait_time)
     
     
         go_to_instagram_signup(driver)
@@ -351,7 +327,6 @@ def create_account(driver, user_info):
         
         
         if USE_TEMP_MAIL:
-            # driver.switch_to.window(driver.window_handles[0])
             random_time_delay(min_wait_time, max_wait_time)
             for _ in range(5):
                 try:
@@ -362,8 +337,7 @@ def create_account(driver, user_info):
                     break
                 except Exception as e:
                     pass
-            # driver.switch_to.window(driver.window_handles[-1])
-            
+        
         
         random_time_delay(min_wait_time,max_wait_time)
         driver.find_element(By.NAME, "email_confirmation_code").send_keys(otp)
@@ -390,7 +364,7 @@ if __name__ == '__main__':
             except Exception as e:
                 pass
 
-            driver = open_browser(user_agent=USE_RANDOM_USER_AGENT, proxy=USE_PROXY)
+            driver = open_browser(user_agent=True, proxy=USE_PROXY)
             
             user_info = generate_user_info()
             

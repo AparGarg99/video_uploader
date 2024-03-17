@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+
 #%%
 import os
 CURRENT_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -10,7 +10,6 @@ from datetime import date, datetime
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from selenium.webdriver.common.by import By
-import pandas as pd
 import random
 import time
 from selenium import webdriver
@@ -22,6 +21,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from fake_useragent import UserAgent
 from dotenv import load_dotenv
+load_dotenv()
+
 #%%
 
 #################### User input ####################
@@ -40,21 +41,12 @@ DB_PORT = int(os.getenv('DB_PORT'))
 
 
 #################### File paths ####################
-curr_date = date.today().strftime("%d-%m-%Y")
 PATH_DICT = {
     'PROJECT_DIR': CURRENT_FOLDER,
-    
     'ORIGINAL_VIDEO_DIR': os.path.join(CURRENT_FOLDER, 'input', 'videos'),
-    'ACCOUNT_FILE': os.path.join(CURRENT_FOLDER, 'input', 'gmail_accounts_5.csv'),
-    'VIDEO_METADATA_FILE': os.path.join(CURRENT_FOLDER, 'input', 'video_metadata.csv'),
-    
-    'OUTPUT_DIR':  os.path.join(CURRENT_FOLDER, f'output_{curr_date}'),
-    'OUTPUT_FILE':  os.path.join(CURRENT_FOLDER, f'output_{curr_date}', 'output_instagram.csv')
     }
 
 #%%
-
-max_connections = 1
 
 db_params = {
     'host': DB_HOST,
@@ -66,35 +58,36 @@ db_params = {
 
 connection_pool = psycopg2.pool.ThreadedConnectionPool(
     minconn=1,
-    maxconn=max_connections,
+    maxconn=1,
     **db_params
 )
 
-
 #%%
+
 ############################# DB UTILS #############################
 @contextmanager
 def connect_to_database():
     connection = connection_pool.getconn()
-
     try:
-        yield connection  # Provide the connection to the caller
+        # Provide the connection to the caller
+        yield connection
     finally:
-        connection_pool.putconn(connection)  # Release the connection back to the pool
+        # Release the connection back to the pool
+        connection_pool.putconn(connection)
 
 
 
-def get_and_update_user():
+def get_and_update_user(nvideos):
     try:
         # Connect to the database using the context manager
         with connect_to_database() as connection:
             # Create a cursor to interact with the database
             with connection.cursor() as cursor:
                 # SQL query to select a user with less than three videos uploaded
-                select_query = """
+                select_query = f"""
                 SELECT email, password, videos_uploaded
                 FROM public.insta_accounts
-                WHERE videos_uploaded < 3
+                WHERE videos_uploaded < {nvideos}
                 AND
                 in_use = False
                 ORDER BY last_used ASC
@@ -230,39 +223,19 @@ def update_user_video_count(email, video_count):
 
 
 ############################# SELENIUM UTILS #############################
-def open_browser(driver_version='120.0.6099.234', headless=False, user_agent=True, proxy=None, download_directory=None):
-    chrome_service = ChromeService(ChromeDriverManager(driver_version=driver_version).install())
-    
+def open_browser(user_agent=False, proxy=False):
     chrome_options = uc.ChromeOptions()
-    # chrome_options.binary_location = chrome_binary_path
-    
     chrome_options.add_argument("--window-size=1920,1080")
-    #chrome_options.add_argument("--start-minimized")  # Add this line to start in minimized mode
-    # chrome_options.add_argument("--disable-extensions") # Disable Chrome extensions
-    #chrome_options.add_argument('--disable-notifications') # Disable Chrome notifications
-    chrome_options.add_argument("--mute-audio") # Mute system audio
-    #chrome_options.add_argument('--disable-dev-shm-usage') # Disable the use of /dev/shm to store temporary data
-    #chrome_options.add_argument('--ignore-certificate-errors') # Ignore certificate errors
-    # chrome_options.add_argument("--incognito")  # Start Chrome in incognito mode
-    #chrome_options.add_argument("--disable-geolocation")  # Disable geolocation in Chrome
     chrome_options.add_argument('--disable-web-security')
-    
-    if headless:
-        chrome_options.add_argument("--headless")
     if user_agent:
         ua = UserAgent()
-        user_agent = ua.chrome + ' ' + ua.os_linux
+        user_agent = ua.random
         chrome_options.add_argument(f'user-agent={user_agent}')
     if proxy:
-        chrome_options.add_argument(f"--load-extension=./proxies/proxy_auth_plugin")  
-    if download_directory:
-        preferences = {"download.default_directory": download_directory}
-        chrome_options.add_experimental_option("prefs", preferences)
-    
+        chrome_options.add_argument(f"--load-extension={CURRENT_FOLDER}/proxies/proxy_auth_plugin")
     driver = webdriver.Chrome(options=chrome_options)
-    # driver.execute_script("return document.querySelector('extensions-manager').shadowRoot.querySelector('#viewManager > extensions-detail-view.active').shadowRoot.querySelector('div#container.page-container > div.page-content > div#options-section extensions-toggle-row#allow-incognito').shadowRoot.querySelector('label#label input').click()")
-
     return driver
+
 
 
 def login(driver, email_id, password):
@@ -275,14 +248,14 @@ def login(driver, email_id, password):
 
         # Locate the email input field and enter your email
         driver.find_element(By.NAME, "username").send_keys(email_id)
+        random_time_delay(min_wait_time, max_wait_time)
 
         # Locate the password input field and enter your password
         driver.find_element(By.NAME, "password").send_keys(password)
+        random_time_delay(min_wait_time, max_wait_time)
 
         # Click the "Next" button to log in
         driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
-
-        # wait to load
         random_time_delay(min_wait_time, max_wait_time)
         
         # go to homepage
@@ -299,8 +272,6 @@ def login(driver, email_id, password):
 def go_to_homepage(driver):
     # go to homepage
     driver.get("https://www.instagram.com")
-
-    # wait to load
     random_time_delay(min_wait_time, max_wait_time)
     
     
@@ -324,10 +295,7 @@ def go_to_upload_page():
     try:
         # Click on 'Create' button in top right corner
         driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]').click()
-        
-        # wait to load
         random_time_delay(min_wait_time, max_wait_time)
-        
         return True
         
     except Exception as e:
@@ -378,11 +346,6 @@ def select_file(video_path):
         absolute_path = os.path.abspath(video_path)
         # Click on 'Select files' button to choose files from desktop
         driver.find_element(By.CSS_SELECTOR, "input[type='file']").send_keys(absolute_path)
-        
-        # wait to load
-        random_time_delay(min_wait_time, max_wait_time)
-        
-        # wait to load
         random_time_delay(min_wait_time*2, max_wait_time*2)
         
         return True
@@ -472,15 +435,18 @@ if __name__=='__main__':
         file_path = None
         try:
             current_login = ''
-            user_info = get_and_update_user()
+            user_info = get_and_update_user(videos_per_account)
             video_info = None
+            
             if user_info:
                 video_info = fetch_video()
 
             if user_info is None:
                 print("No user available")
+                
             elif video_info is None:
                 print("No video available")
+                
             else:                
                 email = user_info['email']
                 password = user_info['password']
@@ -493,19 +459,20 @@ if __name__=='__main__':
                 file_name = extract_file_id(video_url)
                 output_filepath = os.path.join(PATH_DICT['ORIGINAL_VIDEO_DIR'], file_name+'.mp4')
                 file_path = output_filepath
+                
                 # Update it to downloading
                 update_is_processed(video_url)
                 if not check_file_exists(output_filepath):
                     download_video(video_url, output_filepath)
+                    
                 if email != current_login:
-
                     try:
                         logout_status = logout(driver)
                         driver.quit()
                     except:
                         pass
 
-                    driver = open_browser(proxy=USE_PROXY)
+                    driver = open_browser(user_agent=True, proxy=USE_PROXY)
                     # try login - can be successful or failed
                     login_status = login(driver, email, password)
                     current_login = email
@@ -547,6 +514,7 @@ if __name__=='__main__':
                 driver.quit()
             except:
                 pass
+            
         finally:
             try:
                 if file_path:
@@ -554,4 +522,5 @@ if __name__=='__main__':
                     print(f"File '{file_path}' deleted successfully.")
             except Exception as e:
                 print(f"Error deleting file '{file_path}': {e}")
+                
             random_time_delay(min_wait_time, max_wait_time)

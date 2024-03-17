@@ -17,7 +17,6 @@ from psycopg2 import pool
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import os
-
 load_dotenv('.env')
 
 APIKEY = os.getenv('API_KEY')

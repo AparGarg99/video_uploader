@@ -76,37 +76,32 @@ conda activate "video_uploader"
 ## Instagram Account Creation
 
 #### To run the bot, use this command
-
 ```
 python 1_instagram_account_creation.py
 ```
 
 ### Description
-
 This Python script automates the creation of Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
 
 ### Flow
-
-The bot will first open a chrome browser and open instagram.com, then head to the sign up page. For email it will rely on temp-mail or sms-activate. If temp-mail is used it will open a new tab and open temp-mail site and get the email using clipboard. If the clipboard doesn't work it will take a screenshot and get the email from there. Then the email is used in the sign up page for instagram. Once the OTP is generated the OTP will be used for account verification. Once the account is verified it will be saved to the db.
+The bot will first open a chrome browser and open instagram.com, then head to the sign up page. For email it will rely on temp-mail or sms-activate. If temp-mail is used it will open a new window and open temp-mail site and get the email using clipboard. If the clipboard doesn't work it will take a screenshot and get the email from there. Then the email is used in the sign up page for instagram in a different window. Once the OTP is generated it will be used for account verification. Once the account is verified it will be saved to the db.
 
 ### Configuration
-
 The bot can be configured to use `Proxy`, `SMS-Activate`, `Temp-mail`.
 
-To enable proxy usage, set:
-
+To enable proxy usage:
 ```
 USE_PROXY = True
 ```
 
 ### You can only use either SMS-activate or Temp-mail 
 
-To use SMS-Activate
+To use SMS-Activate:
 ```
 USE_SMS_ACTIVE = True
 ```
 
-To use Temp-mail
+To use Temp-mail:
 ```
 USE_TEMP_MAIL = True
 ```
@@ -115,41 +110,31 @@ USE_TEMP_MAIL = True
 ## Instagram video uploading
 
 #### To run the bot, use this command
-
 ```
 python 2_instagram_upload.py
 ```
 
 
 ### Description
-
 This bot automates the uploading of videos on Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
 
 ### Flow
-
 The bot will open a chrome browser and head towards instagram. It will then fetch the credentials saved in the insta_accounts table where it will check for the videos uploaded and is_use attribute. Then it will take any one account that can be used and updated the is_use attribute to True. Then it will login to the account on instagram start the upload process. If uploaded successfully it will set the value of in_use to False and increment the value of videos_uploaded to True. In case of failure it will revert back.
 
 ### Configuration
-
 ```
 USE_PROXY : Set this to true if you want proxy to be used. 
 ```
 
 
-
 # Database
-
-The main database is `opraah` and the tables exists in `public`
-
-There are about 4 tables being used for the bots, 2 tables for instagram and 2 tables for youtube.
-
+There are 4 tables being used for the bots, 2 tables for instagram and 2 tables for youtube.
 
 Tables:
-
-- insta_accounts
-- insta_video_metadata
-- youtube_accounts
-- youtube_video_metadata
+- public.insta_accounts
+- public.insta_video_metadata
+- public.youtube_accounts
+- public.youtube_video_metadata
 
 
 ### insta_accounts
@@ -206,9 +191,6 @@ ___
     - Downloading: When the video is downloading by the bot.
     - Processing: When the video upload process starts.
     - Done: The video has been uploaded and won't be processed.
-
-
-
 
 
 # References:
