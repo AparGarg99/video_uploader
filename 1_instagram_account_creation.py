@@ -118,6 +118,19 @@ def open_browser(headless=False, user_agent=False, proxy=None, download_director
 
 
 
+def open_browser_for_temp_mail(headless=False, user_agent=False, proxy=None, download_directory=None):
+    chrome_options = uc.ChromeOptions()
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("--mute-audio") # Mute system audio
+    chrome_options.add_argument("--enable-clipboard")
+    if download_directory:
+        preferences = {"download.default_directory": download_directory}
+        chrome_options.add_experimental_option("prefs", preferences)
+
+    temp_mail_driver = webdriver.Chrome(options=chrome_options)
+    return temp_mail_driver
+
+
 def random_time_delay(start=10, end=20):
     time.sleep(random.uniform(start, end))
 
@@ -211,15 +224,15 @@ def get_email_tempmail(driver):
 
 
 
-def get_otp_tempmail(driver):
+def get_otp_tempmail(temp_mail_driver):
     try:
-        driver.execute_script("window.scrollBy(0, 700);")
+        temp_mail_driver.execute_script("window.scrollBy(0, 700);")
         random_time_delay(min_wait_time, max_wait_time)
                 
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
             ## Save screenshot in the temporary file
             temp_filename = temp_file.name
-            driver.save_screenshot(temp_filename)
+            temp_mail_driver.save_screenshot(temp_filename)
         
             ## Use EasyOCR to read text from the screenshot
             reader = easyocr.Reader(['en'], gpu=False)
@@ -289,11 +302,13 @@ def create_account(driver, user_info):
     
     
         if USE_TEMP_MAIL:
-            email = get_email_tempmail(driver)
+            temp_mail_driver = open_browser_for_temp_mail()
+            email = get_email_tempmail(temp_mail_driver)
+            
             user_info['email'] = email
-            driver.execute_script("window.open('about:blank', '_blank');") ## create new window for instagram
+            # driver.execute_script("window.open('about:blank', '_blank');") ## create new window for instagram
             random_time_delay(min_wait_time, max_wait_time)
-            driver.switch_to.window(driver.window_handles[-1])
+            # driver.switch_to.window(driver.window_handles[-1])
             random_time_delay(min_wait_time, max_wait_time)
     
     
@@ -336,18 +351,18 @@ def create_account(driver, user_info):
         
         
         if USE_TEMP_MAIL:
-            driver.switch_to.window(driver.window_handles[0])
+            # driver.switch_to.window(driver.window_handles[0])
             random_time_delay(min_wait_time, max_wait_time)
             for _ in range(5):
                 try:
-                    otp = get_otp_tempmail(driver)
+                    otp = get_otp_tempmail(temp_mail_driver)
                     if otp is None:
                         random_time_delay(min_wait_time*3, max_wait_time*3)
                         continue
                     break
                 except Exception as e:
                     pass
-            driver.switch_to.window(driver.window_handles[-1])
+            # driver.switch_to.window(driver.window_handles[-1])
             
         
         random_time_delay(min_wait_time,max_wait_time)
