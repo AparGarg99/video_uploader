@@ -11,3 +11,4 @@ smsactivate==1.5
 psycopg2==2.9.9
 pyperclip==1.8.2
 black==22.3.0
+easyocr==1.7.1
