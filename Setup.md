@@ -69,39 +69,23 @@ This should install all OS packages
 
 ---
 
-You need to fetch the application code, for this you will need to setup ssh keys on github to clone repo.
-
----
-
 #### Setup github ssh keys
-
 ```
 ssh-keygen -t ed25519 -C "<YOUR_EMAIL_ID>"
 cat /home/ubuntu/.ssh/id_ed25519.pub
 ```
-
-Copy the keys and login to github and it to your ssh keys.
-
-#### Clone the repo
-```
-git clone git@github.com:shantamshrestha/video-uploader.git
-```
-
-#### Go inside directory
-```
-cd video-uploader
-```
+Copy the keys. Login to github -> Settings -> SSH and GPG keys -> New SSH key -> Add key.
 
 #### Setup virtual environment
-
 ```
+git clone git@github.com:shantamshrestha/video-uploader.git
+cd video-uploader
 virtualenv -p python3 venv 
 source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 
 ## Write system file to run application in background
-
 ```
 sudo vim /etc/systemd/system/instagram.service
 ```
