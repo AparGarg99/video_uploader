@@ -1,5 +1,5 @@
 # Installation
-1. Download and Install [Anaconda](https://www.anaconda.com/download)
+1. Download and Install Anaconda - [Download page](https://www.anaconda.com/download), [Guide video](https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript)
 
 2. Open Anaconda prompt
 
@@ -28,7 +28,7 @@ conda install -c anaconda spyder
 pip install -r requirements.txt
 ```
 
-8. Go to Google Cloud Console 
+8. Go to Google Cloud Console - [Guide video](https://www.youtube.com/watch?v=G_4KUbuwtlM&ab_channel=GeekySid)
     * **Create new project**
     ```
     Create new project -> Search "Google Drive API" -> Enable -> Manage
@@ -73,12 +73,7 @@ conda activate "video_uploader"
 ```
 
 
-## Instagram Account Creation
-
-#### To run the bot, use this command
-```
-python 1_instagram_account_creation.py
-```
+# Instagram Account Creation
 
 ### Description
 This Python script automates the creation of Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
@@ -94,8 +89,6 @@ To enable proxy usage:
 USE_PROXY = True
 ```
 
-### You can only use either SMS-activate or Temp-mail 
-
 To use SMS-Activate:
 ```
 USE_SMS_ACTIVE = True
@@ -105,9 +98,14 @@ To use Temp-mail:
 ```
 USE_TEMP_MAIL = True
 ```
+***Note:  You can only use either SMS-activate or Temp-mail***
 
+#### Usage
+```
+python 1_instagram_account_creation.py
+```
 
-## Instagram video uploading
+# Instagram video uploading
 
 ### Description
 This bot automates the uploading of videos on Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
@@ -125,7 +123,6 @@ USE_PROXY : Set this to true if you want proxy to be used.
 python 2_instagram_upload.py
 ```
 
-
 # Database
 
 ### Description
@@ -141,7 +138,7 @@ Tables:
 - public.youtube_video_metadata
 
 
-* insta_accounts
+**insta_accounts**
 ___
 | email | password | in_use | last_used | videos_uploaded
 
@@ -151,7 +148,7 @@ ___
  - last_used -> timestamp field of when the video account data was last used/updated.
  - video_uploaded -> The number of videos uploaded in the account. Defaults will be zero.
 
-* insta_video_metadata
+**insta_video_metadata**
 ___
 | url | title | tags | description | is_processed
 
@@ -166,7 +163,7 @@ ___
     - Processing: When the video upload process starts.
     - Done: The video has been uploaded and won't be processed.
 
-* youtube_accounts
+**youtube_accounts**
 ___
 | email | password | in_use | last_used | videos_uploaded | number | activation_id | insta_account |
 
@@ -181,7 +178,7 @@ ___
 
 ***Number, activation_id, insta_account are not used and are not necessary.***
 
-* youtube_video_metadata
+**youtube_video_metadata**
 ___
 | url | title | tags | description | is_processed
 
@@ -207,6 +204,8 @@ Password: <Given in .env file>
 ```
 
 # Proxies
+
+### Description
 The uploader service uses proxies from Brightdata.
 The proxies are being used as an extension for the chrome browser. You can see them in the proxies folder. Inside this you will find different folders which are like different modules for an extension. 
 The extension looks something like this:
@@ -217,6 +216,7 @@ proxy_isp
     - manifest.json
 ```
 
+### Configuration
 To change the credentials for proxy, simply go to the respective proxy and update it in the `background.js` file. There should be username and password, update it there.
 
 ```
@@ -240,7 +240,6 @@ proxy_web_unlocker: This proxy when used can unlock any webpage, blocked by capt
 ```
 
 ### Brighdata credits
-
 To add credits to Brighdata:
 - Go to https://brightdata.com
 - Log in.
@@ -248,8 +247,3 @@ To add credits to Brighdata:
 - Click on add funds.
 - Enter the amount and payment method and payout.
 ---
-
-
-# References:
-1. Install Anaconda - https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript
-2. Google Drive API - https://www.youtube.com/watch?v=G_4KUbuwtlM&ab_channel=GeekySid
