@@ -109,12 +109,6 @@ USE_TEMP_MAIL = True
 
 ## Instagram video uploading
 
-#### To run the bot, use this command
-```
-python 2_instagram_upload.py
-```
-
-
 ### Description
 This bot automates the uploading of videos on Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
 
@@ -126,8 +120,18 @@ The bot will open a chrome browser and head towards instagram. It will then fetc
 USE_PROXY : Set this to true if you want proxy to be used. 
 ```
 
+#### Usage
+```
+python 2_instagram_upload.py
+```
+
 
 # Database
+
+### Description
+The application is using Postgres database hosted in AWS RDS with the following config.
+
+### Tables
 There are 4 tables being used for the bots, 2 tables for instagram and 2 tables for youtube.
 
 Tables:
@@ -137,7 +141,7 @@ Tables:
 - public.youtube_video_metadata
 
 
-### insta_accounts
+* insta_accounts
 ___
 | email | password | in_use | last_used | videos_uploaded
 
@@ -147,7 +151,7 @@ ___
  - last_used -> timestamp field of when the video account data was last used/updated.
  - video_uploaded -> The number of videos uploaded in the account. Defaults will be zero.
 
-### insta_video_metadata
+* insta_video_metadata
 ___
 | url | title | tags | description | is_processed
 
@@ -162,7 +166,7 @@ ___
     - Processing: When the video upload process starts.
     - Done: The video has been uploaded and won't be processed.
 
-### youtube_accounts
+* youtube_accounts
 ___
 | email | password | in_use | last_used | videos_uploaded | number | activation_id | insta_account |
 
@@ -175,9 +179,9 @@ ___
  - activation_id -> The activation_id for sms-activate.
  - insta_account -> If the account was used for instagram.
 
- #### Number, activation_id, insta_account are not used and are not necessary.
+***Number, activation_id, insta_account are not used and are not necessary.***
 
- ### youtube_video_metadata
+* youtube_video_metadata
 ___
 | url | title | tags | description | is_processed
 
@@ -193,10 +197,7 @@ ___
     - Done: The video has been uploaded and won't be processed.
 
 
-## Postgres Connection
-
-The application is using Postgres database hosted in AWS RDS with the following config.
-
+### Configuration
 ```
 Host: <Given in .env file>
 Port: <Given in .env file>
@@ -205,12 +206,9 @@ Username: <Given in .env file>
 Password: <Given in .env file>
 ```
 
-# Proxies:
-
+# Proxies
 The uploader service uses proxies from Brightdata.
-
 The proxies are being used as an extension for the chrome browser. You can see them in the proxies folder. Inside this you will find different folders which are like different modules for an extension. 
-
 The extension looks something like this:
 
 ```
