@@ -219,7 +219,7 @@ proxy_isp
     - manifest.json
 ```
 
-To change the credentials for proxy, simply go to the respective proxy and update it int the `background.js` file. There should be the username and password, update it there.
+To change the credentials for proxy, simply go to the respective proxy and update it in the `background.js` file. There should be username and password, update it there.
 
 ```
 function callbackFn(details) {
@@ -245,7 +245,7 @@ proxy_web_unlocker: This proxy when used can unlock any webpage, blocked by capt
 
 To add credits to Brighdata:
 - Go to https://brightdata.com
-- Login in to brighdata.
+- Log in.
 - Go to billing, https://brightdata.com/cp/billing
 - Click on add funds.
 - Enter the amount and payment method and payout.
