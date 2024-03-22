@@ -198,11 +198,11 @@ ___
 The application is using Postgres database hosted in AWS RDS with the following config.
 
 ```
-Host: opraah-database.c9qouuiwyuwx.ap-south-1.rds.amazonaws.com
-Port: 5432
-Database: opraah
-Username: postgres
-Password: VUFPZaluUQk
+Host: <Given in .env file>
+Port: <Given in .env file>
+Database: <Given in .env file>
+Username: <Given in .env file>
+Password: <Given in .env file>
 ```
 
 # Proxies:
