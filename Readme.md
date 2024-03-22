@@ -58,6 +58,8 @@ python setup_credentials.py
 
 14. Download and unzip [chrome-binary](https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/win64/chrome-win64.zip) and [edge-binary](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) folders.
 
+---
+
 # Usage
 
 1. Go to Anaconda prompt
@@ -72,6 +74,7 @@ cd <project path>
 conda activate "video_uploader"
 ```
 
+---
 
 # Instagram Account Creation
 
@@ -98,12 +101,14 @@ To use Temp-mail:
 ```
 USE_TEMP_MAIL = True
 ```
-***Note:  You can only use either SMS-activate or Temp-mail***
+Note:  You can only use either SMS-activate or Temp-mail
 
 #### Usage
 ```
 python 1_instagram_account_creation.py
 ```
+
+---
 
 # Instagram video uploading
 
@@ -123,6 +128,8 @@ USE_PROXY : Set this to true if you want proxy to be used.
 python 2_instagram_upload.py
 ```
 
+---
+
 # Database
 
 ### Description
@@ -139,7 +146,7 @@ Tables:
 
 
 **insta_accounts**
-___
+
 | email | password | in_use | last_used | videos_uploaded
 
  - email -> the registered email id for the insta gram accounts
@@ -149,7 +156,7 @@ ___
  - video_uploaded -> The number of videos uploaded in the account. Defaults will be zero.
 
 **insta_video_metadata**
-___
+
 | url | title | tags | description | is_processed
 
 - url -> The google drive link of the video to be uploaded
@@ -164,7 +171,7 @@ ___
     - Done: The video has been uploaded and won't be processed.
 
 **youtube_accounts**
-___
+
 | email | password | in_use | last_used | videos_uploaded | number | activation_id | insta_account |
 
  - email -> the registered email id for the insta gram accounts
@@ -179,7 +186,7 @@ ___
 ***Number, activation_id, insta_account are not used and are not necessary.***
 
 **youtube_video_metadata**
-___
+
 | url | title | tags | description | is_processed
 
 - url -> The google drive link of the video to be uploaded
@@ -187,7 +194,6 @@ ___
 - tags -> The tags to be used.
 - description -> Description of the video
 - is_processed -> ENUM Value('Not processed', 'Downloading','Processed', 'Done')
-    
     - Not processed: This is the default value. Video that have not processed and 
     - Downloading: When the video is downloading by the bot.
     - Processing: When the video upload process starts.
@@ -202,6 +208,8 @@ Database: <Given in .env file>
 Username: <Given in .env file>
 Password: <Given in .env file>
 ```
+
+---
 
 # Proxies
 
