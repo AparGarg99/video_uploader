@@ -103,7 +103,7 @@ USE_TEMP_MAIL = True
 ```
 Note:  You can only use either SMS-activate or Temp-mail
 
-#### Usage
+### Usage
 ```
 python 1_instagram_account_creation.py
 ```
@@ -183,7 +183,7 @@ Tables:
  - activation_id -> The activation_id for sms-activate.
  - insta_account -> If the account was used for instagram.
 
-***Number, activation_id, insta_account are not used and are not necessary.***
+Note: Number, activation_id, insta_account are not used and are not necessary.
 
 **youtube_video_metadata**
 
