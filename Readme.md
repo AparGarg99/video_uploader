@@ -193,6 +193,65 @@ ___
     - Done: The video has been uploaded and won't be processed.
 
 
+## Postgres Connection
+
+The application is using Postgres database hosted in AWS RDS with the following config.
+
+```
+Host: opraah-database.c9qouuiwyuwx.ap-south-1.rds.amazonaws.com
+Port: 5432
+Database: opraah
+Username: postgres
+Password: VUFPZaluUQk
+```
+
+# Proxies:
+
+The uploader service uses proxies from Brightdata.
+
+The proxies are being used as an extension for the chrome browser. You can see them in the proxies folder. Inside this you will find different folders which are like different modules for an extension. 
+
+The extension looks something like this:
+
+```
+proxy_isp
+    - background.js
+    - manifest.json
+```
+
+To change the credentials for proxy, simply go to the respective proxy and update it int the `background.js` file. There should be the username and password, update it there.
+
+```
+function callbackFn(details) {
+    return {
+        authCredentials: {
+            username: "<USERNAME>",
+            password: "<PASSWORD>"
+        }
+    };
+}
+```
+
+The proxies folder already contains different type of proxy categories provided by `Brightdata.`
+
+```
+proxy_auth_plugin : These are datacenter IPs.
+proxy_isp: These are IP provided by ISP.
+proxy_residential: These are residential IPs used by actual people.
+proxy_web_unlocker: This proxy when used can unlock any webpage, blocked by captchpas, but don't seem to work for login cases.
+```
+
+### Brighdata credits
+
+To add credits to Brighdata:
+- Go to https://brightdata.com
+- Login in to brighdata.
+- Go to billing, https://brightdata.com/cp/billing
+- Click on add funds.
+- Enter the amount and payment method and payout.
+---
+
+
 # References:
 1. Install Anaconda - https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript
 2. Google Drive API - https://www.youtube.com/watch?v=G_4KUbuwtlM&ab_channel=GeekySid
