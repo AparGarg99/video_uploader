@@ -298,7 +298,7 @@ def create_account(driver, user_info):
         random_time_delay(min_wait_time, max_wait_time)
         driver.find_element(By.XPATH, "//input[@name='password']").send_keys(user_info['password'])
         random_time_delay(min_wait_time, max_wait_time)
-        driver.find_element(By.XPATH, "//*[text()='Sign up']").click()
+        driver.find_element(By.XPATH, "//button[@type='submit']").click()
         random_time_delay(min_wait_time*2, max_wait_time*2)
         
         month_dropdown = Select(driver.find_element(By.XPATH, "//select[@title='Month:']"))
@@ -310,7 +310,7 @@ def create_account(driver, user_info):
         year_dropdown = Select(driver.find_element(By.XPATH, "//select[@title='Year:']"))
         year_dropdown.select_by_visible_text(user_info['year'])
         random_time_delay(min_wait_time, max_wait_time)
-        driver.find_element(By.XPATH, "//*[text()='Next']").click()
+        driver.find_element(By.XPATH, "//button[text()='Next']").click()
         random_time_delay(min_wait_time*2, max_wait_time*2)
     
     
@@ -342,7 +342,10 @@ def create_account(driver, user_info):
         random_time_delay(min_wait_time,max_wait_time)
         driver.find_element(By.NAME, "email_confirmation_code").send_keys(otp)
         random_time_delay(min_wait_time*3,max_wait_time*3)
-        driver.find_element(By.XPATH, "//*[text()='Confirm']").click()
+        try:
+            driver.find_element(By.XPATH, "//*[text()='Confirm']").click()
+        except:
+            driver.find_element(By.XPATH, "//*[text()='Next']").click()
         random_time_delay(min_wait_time*3,max_wait_time*3)
     
         return True, user_info
