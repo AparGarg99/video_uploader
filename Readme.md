@@ -1,5 +1,5 @@
 # Installation
-1. Download and Install [Anaconda](https://www.anaconda.com/download)
+1. Download and Install Anaconda - [Download page](https://www.anaconda.com/download), [Guide video](https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript)
 
 2. Open Anaconda prompt
 
@@ -28,7 +28,7 @@ conda install -c anaconda spyder
 pip install -r requirements.txt
 ```
 
-8. Go to Google Cloud Console 
+8. Go to Google Cloud Console - [Guide video](https://www.youtube.com/watch?v=G_4KUbuwtlM&ab_channel=GeekySid)
     * **Create new project**
     ```
     Create new project -> Search "Google Drive API" -> Enable -> Manage
@@ -58,6 +58,8 @@ python setup_credentials.py
 
 14. Download and unzip [chrome-binary](https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/win64/chrome-win64.zip) and [edge-binary](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) folders.
 
+---
+
 # Usage
 
 1. Go to Anaconda prompt
@@ -72,13 +74,9 @@ cd <project path>
 conda activate "video_uploader"
 ```
 
+---
 
-## Instagram Account Creation
-
-#### To run the bot, use this command
-```
-python 1_instagram_account_creation.py
-```
+# Instagram Account Creation
 
 ### Description
 This Python script automates the creation of Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
@@ -94,8 +92,6 @@ To enable proxy usage:
 USE_PROXY = True
 ```
 
-### You can only use either SMS-activate or Temp-mail 
-
 To use SMS-Activate:
 ```
 USE_SMS_ACTIVE = True
@@ -105,15 +101,16 @@ To use Temp-mail:
 ```
 USE_TEMP_MAIL = True
 ```
+Note:  You can only use either SMS-activate or Temp-mail
 
-
-## Instagram video uploading
-
-#### To run the bot, use this command
+### Usage
 ```
-python 2_instagram_upload.py
+python 1_instagram_account_creation.py
 ```
 
+---
+
+# Instagram video uploading
 
 ### Description
 This bot automates the uploading of videos on Instagram accounts using Selenium WebDriver. It utilizes temporary email services or SMS activation APIs for verification purposes. Additionally, it interacts with a PostgreSQL database to manage account information.
@@ -126,8 +123,19 @@ The bot will open a chrome browser and head towards instagram. It will then fetc
 USE_PROXY : Set this to true if you want proxy to be used. 
 ```
 
+#### Usage
+```
+python 2_instagram_upload.py
+```
+
+---
 
 # Database
+
+### Description
+The application is using Postgres database hosted in AWS RDS with the following config.
+
+### Tables
 There are 4 tables being used for the bots, 2 tables for instagram and 2 tables for youtube.
 
 Tables:
@@ -137,8 +145,8 @@ Tables:
 - public.youtube_video_metadata
 
 
-### insta_accounts
-___
+**insta_accounts**
+
 | email | password | in_use | last_used | videos_uploaded
 
  - email -> the registered email id for the insta gram accounts
@@ -147,8 +155,8 @@ ___
  - last_used -> timestamp field of when the video account data was last used/updated.
  - video_uploaded -> The number of videos uploaded in the account. Defaults will be zero.
 
-### insta_video_metadata
-___
+**insta_video_metadata**
+
 | url | title | tags | description | is_processed
 
 - url -> The google drive link of the video to be uploaded
@@ -162,8 +170,8 @@ ___
     - Processing: When the video upload process starts.
     - Done: The video has been uploaded and won't be processed.
 
-### youtube_accounts
-___
+**youtube_accounts**
+
 | email | password | in_use | last_used | videos_uploaded | number | activation_id | insta_account |
 
  - email -> the registered email id for the insta gram accounts
@@ -175,10 +183,10 @@ ___
  - activation_id -> The activation_id for sms-activate.
  - insta_account -> If the account was used for instagram.
 
- #### Number, activation_id, insta_account are not used and are not necessary.
+Note: Number, activation_id, insta_account are not used and are not necessary.
 
- ### youtube_video_metadata
-___
+**youtube_video_metadata**
+
 | url | title | tags | description | is_processed
 
 - url -> The google drive link of the video to be uploaded
@@ -186,31 +194,28 @@ ___
 - tags -> The tags to be used.
 - description -> Description of the video
 - is_processed -> ENUM Value('Not processed', 'Downloading','Processed', 'Done')
-    
     - Not processed: This is the default value. Video that have not processed and 
     - Downloading: When the video is downloading by the bot.
     - Processing: When the video upload process starts.
     - Done: The video has been uploaded and won't be processed.
 
 
-## Postgres Connection
-
-The application is using Postgres database hosted in AWS RDS with the following config.
-
+### Configuration
 ```
-Host: opraah-database.c9qouuiwyuwx.ap-south-1.rds.amazonaws.com
-Port: 5432
-Database: opraah
-Username: postgres
-Password: VUFPZaluUQk
+Host: <Given in .env file>
+Port: <Given in .env file>
+Database: <Given in .env file>
+Username: <Given in .env file>
+Password: <Given in .env file>
 ```
 
-# Proxies:
+---
 
+# Proxies
+
+### Description
 The uploader service uses proxies from Brightdata.
-
 The proxies are being used as an extension for the chrome browser. You can see them in the proxies folder. Inside this you will find different folders which are like different modules for an extension. 
-
 The extension looks something like this:
 
 ```
@@ -219,7 +224,8 @@ proxy_isp
     - manifest.json
 ```
 
-To change the credentials for proxy, simply go to the respective proxy and update it int the `background.js` file. There should be the username and password, update it there.
+### Configuration
+To change the credentials for proxy, simply go to the respective proxy and update it in the `background.js` file. There should be username and password, update it there.
 
 ```
 function callbackFn(details) {
@@ -242,16 +248,10 @@ proxy_web_unlocker: This proxy when used can unlock any webpage, blocked by capt
 ```
 
 ### Brighdata credits
-
 To add credits to Brighdata:
 - Go to https://brightdata.com
-- Login in to brighdata.
+- Log in.
 - Go to billing, https://brightdata.com/cp/billing
 - Click on add funds.
 - Enter the amount and payment method and payout.
 ---
-
-
-# References:
-1. Install Anaconda - https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript
-2. Google Drive API - https://www.youtube.com/watch?v=G_4KUbuwtlM&ab_channel=GeekySid
