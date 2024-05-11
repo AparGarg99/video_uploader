@@ -253,3 +253,42 @@ To add credits to Brighdata:
 - Click on add funds.
 - Enter the amount and payment method and payout.
 ---
+
+### Video uploading 
+
+Approach | Result | Remarks
+--- | --- | --- 
+Use headless mode for instagram and youtube| Failed | The website immediatly detects headless mode. 
+Login and upload videos to instgram on laptop | Success | There were cases where it was being redirected to captcha or 2FA after suspicious detection.
+Login and upload videos to instagram using proxy on laptop | Suceess | It worked for bridghdata datacenter proxies but for others it didn't work.
+Login and upload videos to instgram using proxy on AWS |Suceess | It only worked for brighdata datacenter proxy.
+Login and upload videos to youtube on laptop | Success | Depending on account can ask for 2FA.
+Login and upload videos to youtube on laptop using proxy | Success | Only worked for brighdata center proxy. 
+Login and upload videos to youtube on AWS using proxy | Success | Was able to login and upload videos using bridghtdata datacenter proxy.
+---
+
+### Account creation
+
+Approach | Result | Remarks
+--- | --- | --- 
+Account creation using temp mail services for instagram. Temp mail provided random email accounts where a user can recieve emails.| Success | This worked only on local computers/laptops as this didn't work with proxies on AWS.
+Account creation using sms-activate for instagram. Sms-activate provided numbers for account creation and the OTP sent from Instgram for verification. | Success | It wasn't always guranteed to work but they didn't charge for numbers that didn't recieve OTP. This also didn't work for AWS servers.
+Gmail account creation on local machine using details | Failed | The account sometimes used to be created but was later on blocked as suspicious account. 
+
+
+----
+
+## Links for videos
+
+[Google drive link](doc:https://drive.google.com/drive/folders/18P5r_b-NF4Jb3qMSoVUyPTt2sVk5VjK1?usp=sharing)
+
+1) [Create EC2 instance.](doc:https://drive.google.com/file/d/1zdUc1dtPndAQzigy9aEnx4OtPRypjtlc/view?usp=drive_link)
+
+2) [Access via SSH](doc:https://drive.google.com/file/d/1QwCIFIlbs_S_-6lqLpmStkfs29KkEaPM/view?usp=drive_link)
+
+3) [System setup](doc:https://drive.google.com/file/d/1m1SASEMYTD_rGLNWbqKkHnWtmFFIuEsy/view?usp=drive_link)
+
+4) [Create custom AMI](doc:https://drive.google.com/file/d/1WIeFuDiS-aAKV6YOBeZTWX4s6UqHjj1y/view?usp=drive_link)
+
+5) [Running instagram uploader](doc:https://drive.google.com/file/d/1R3r4DfkiaK-qkR4DFSQf4NasGaDz2WqI/view?usp=drive_link)
+
