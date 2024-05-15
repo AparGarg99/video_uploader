@@ -258,24 +258,22 @@ To add credits to Brighdata:
 
 Approach | Result | Remarks
 --- | --- | --- 
-Use headless mode for instagram and youtube| Failed | The website immediatly detects headless mode. 
-Login and upload videos to instgram on laptop | Success | There were cases where it was being redirected to captcha or 2FA after suspicious detection.
-Login and upload videos to instagram using proxy on laptop | Suceess | It worked for bridghdata datacenter proxies but for others it didn't work.
-Login and upload videos to instgram using proxy on AWS |Suceess | It only worked for brighdata datacenter proxy.
-Login and upload videos to youtube on laptop | Success | Depending on account can ask for 2FA.
-Login and upload videos to youtube on laptop using proxy | Success | Only worked for brighdata center proxy. 
-Login and upload videos to youtube on AWS using proxy | Success | Was able to login and upload videos using bridghtdata datacenter proxy.
+Use headless mode for Instagram and YouTube | Failed | The website immediately detects headless mode. 
+Login and upload videos to Instagram on laptop (without proxy) | Success | There were cases where it was being redirected to captcha or 2FA after suspicious detection.
+Login and upload videos to Instagram on laptop (with proxy) | Suceess | It worked for bridghdata datacenter proxy.
+Login and upload videos to Instagram on AWS (with proxy) |Suceess | It only worked for brighdata datacenter proxy.
+Login and upload videos to YouTube on laptop (without proxy) | Success | Depending on account can ask for 2FA.
+Login and upload videos to youtube on laptop (with proxy) | Success | Only worked for brighdata datacenter proxy. 
+Login and upload videos to YouTube on AWS (with proxy) | Success | Was able to login and upload videos using bridghtdata datacenter proxy.
 ---
 
 ### Account creation
 
 Approach | Result | Remarks
 --- | --- | --- 
-Account creation using temp mail services for instagram. Temp mail provided random email accounts where a user can recieve emails.| Success | This worked only on local computers/laptops as this didn't work with proxies on AWS.
-Account creation using sms-activate for instagram. Sms-activate provided numbers for account creation and the OTP sent from Instgram for verification. | Success | It wasn't always guranteed to work but they didn't charge for numbers that didn't recieve OTP. This also didn't work for AWS servers.
-Gmail account creation on local machine using details | Failed | The account sometimes used to be created but was later on blocked as suspicious account. 
-
-
+Account creation using temp mail services for instagram. Temp mail provides random email accounts where a user can receive emails.| Success | This worked only on local computers/laptops. It didn't work with proxies on AWS.
+Account creation using sms-activate for Instagram. Sms-activate provided numbers for account creation and the OTP was sent from Instagram for verification. | Success | It wasn't always guaranteed to work but they didn't charge for numbers that didn't receive OTP. This also didn't work for AWS servers.
+Gmail account creation on local machine using details | Failed | The account sometimes used to be created but was later on blocked as a suspicious account. 
 ----
 
 ## Links for videos
