@@ -258,7 +258,6 @@ To add credits to Brighdata:
 
 Approach | Result | Remarks
 --- | --- | --- 
-Use headless mode for Instagram and YouTube | Failed | The website immediately detects headless mode. 
 Login and upload videos to Instagram on laptop (without proxy) | Success | There were cases where it was being redirected to captcha or 2FA after suspicious detection.
 Login and upload videos to Instagram on laptop (with proxy) | Suceess | It worked for bridghdata datacenter proxy.
 Login and upload videos to Instagram on AWS (with proxy) |Suceess | It only worked for brighdata datacenter proxy.
