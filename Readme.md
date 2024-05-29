@@ -263,8 +263,8 @@ Login and upload videos to Instagram on laptop (without proxy) | Success | There
 Login and upload videos to Instagram on laptop (with proxy) | Suceess | It worked for bridghdata datacenter proxy.
 Login and upload videos to Instagram on AWS (with proxy) |Suceess | It only worked for brighdata datacenter proxy.
 Login and upload videos to YouTube on laptop (without proxy) | Success | Depending on account can ask for 2FA.
-Login and upload videos to youtube on laptop (with proxy) | Success | Only worked for brighdata datacenter proxy. 
-Login and upload videos to YouTube on AWS (with proxy) | Success | Was able to login and upload videos using bridghtdata datacenter proxy.
+Login and upload videos to YouTube on laptop (with proxy) | Failed | Was unable to login and upload videos using proxy.
+Login and upload videos to YouTube on AWS (with proxy) | Failed | Was unable to login and upload videos using proxy.
 ---
 
 ### Account creation
@@ -278,15 +278,15 @@ Gmail account creation on local machine using details | Failed | The account som
 
 ## Links for videos
 
-[Google drive link](doc:https://drive.google.com/drive/folders/18P5r_b-NF4Jb3qMSoVUyPTt2sVk5VjK1?usp=sharing)
+[Google drive link](https://drive.google.com/drive/folders/18P5r_b-NF4Jb3qMSoVUyPTt2sVk5VjK1?usp=sharing)
 
-1) [Create EC2 instance.](doc:https://drive.google.com/file/d/1zdUc1dtPndAQzigy9aEnx4OtPRypjtlc/view?usp=drive_link)
+1) [Create EC2 instance.](https://drive.google.com/file/d/1zdUc1dtPndAQzigy9aEnx4OtPRypjtlc/view?usp=drive_link)
 
-2) [Access via SSH](doc:https://drive.google.com/file/d/1QwCIFIlbs_S_-6lqLpmStkfs29KkEaPM/view?usp=drive_link)
+2) [Access via SSH](https://drive.google.com/file/d/1QwCIFIlbs_S_-6lqLpmStkfs29KkEaPM/view?usp=drive_link)
 
-3) [System setup](doc:https://drive.google.com/file/d/1m1SASEMYTD_rGLNWbqKkHnWtmFFIuEsy/view?usp=drive_link)
+3) [System setup](https://drive.google.com/file/d/1m1SASEMYTD_rGLNWbqKkHnWtmFFIuEsy/view?usp=drive_link)
 
-4) [Create custom AMI](doc:https://drive.google.com/file/d/1WIeFuDiS-aAKV6YOBeZTWX4s6UqHjj1y/view?usp=drive_link)
+4) [Create custom AMI](https://drive.google.com/file/d/1WIeFuDiS-aAKV6YOBeZTWX4s6UqHjj1y/view?usp=drive_link)
 
-5) [Running instagram uploader](doc:https://drive.google.com/file/d/1R3r4DfkiaK-qkR4DFSQf4NasGaDz2WqI/view?usp=drive_link)
+5) [Running instagram uploader](https://drive.google.com/file/d/1R3r4DfkiaK-qkR4DFSQf4NasGaDz2WqI/view?usp=drive_link)
 
