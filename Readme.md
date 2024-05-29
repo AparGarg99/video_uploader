@@ -272,7 +272,7 @@ Approach | Result | Remarks
 --- | --- | --- 
 Account creation using temp mail services for instagram. Temp mail provides random email accounts where a user can receive emails.| Success | This worked only on local computers/laptops. It didn't work with proxies on AWS.
 Account creation using sms-activate for Instagram. Sms-activate provided numbers for account creation and the OTP was sent from Instagram for verification. | Success | It wasn't always guaranteed to work but they didn't charge for numbers that didn't receive OTP. This also didn't work for AWS servers.
-Gmail account creation on local machine using details | Failed | The account sometimes used to be created but was later on blocked as a suspicious account. 
+Gmail account creation on local machine using account details | Failed | The account sometimes used to be created but was later on blocked as a suspicious account. 
 ----
 
 ## Links for videos
