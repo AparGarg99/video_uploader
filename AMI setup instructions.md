@@ -9,7 +9,7 @@
 
 ## Creating AWS EC2 instance
 - Go to AWS
-- Login using credentials (shubham@opraahfx.com)
+- Login using credentials
 - Click on search bar and find EC2 and click on it.
 - Click on launch instance.
     - Enter name of the instance.
