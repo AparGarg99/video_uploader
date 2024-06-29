@@ -78,7 +78,7 @@ Copy the keys. Login to github -> Settings -> SSH and GPG keys -> New SSH key ->
 
 #### Setup virtual environment
 ```
-git clone git@github.com:shantamshrestha/video-uploader.git
+git clone git@github.com:AparGarg99/video_uploader.git
 cd video-uploader
 virtualenv -p python3 venv 
 source ./venv/bin/activate
