@@ -1,5 +1,6 @@
 # About
 Automatic account creation and video upload on Youtube and Instagram.
+
 **Note:** This project is strictly for academic and research purposes. It is not intended for commercial use or resale of any kind.
 
 # Installation
