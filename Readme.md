@@ -277,15 +277,15 @@ Gmail account creation on local machine using account details | Failed | The acc
 
 ## Links for videos
 
-[Google drive link](https://drive.google.com/drive/folders/18P5r_b-NF4Jb3qMSoVUyPTt2sVk5VjK1?usp=sharing)
+[Google drive link](https://drive.google.com/drive/folders/1hoKgii-bHF8sH9RpOFLSkVpDhOxae0lu?usp=drive_link)
 
-1) [Create EC2 instance.](https://drive.google.com/file/d/1zdUc1dtPndAQzigy9aEnx4OtPRypjtlc/view?usp=drive_link)
+1) [Create EC2 instance](https://drive.google.com/file/d/1ymhFXG9o6YSkfiaB9zT4-AlUdwHlLLvl/view?usp=drive_link)
 
-2) [Access via SSH](https://drive.google.com/file/d/1QwCIFIlbs_S_-6lqLpmStkfs29KkEaPM/view?usp=drive_link)
+2) [Access via SSH](https://drive.google.com/file/d/1oimwYqmvZ40G7iYrN0aHAyPe5quwttoq/view?usp=drive_link)
 
-3) [System setup](https://drive.google.com/file/d/1m1SASEMYTD_rGLNWbqKkHnWtmFFIuEsy/view?usp=drive_link)
+3) [System setup](https://drive.google.com/file/d/1WFh3SBmyA5v3L67Purk8iWFyWycupEAa/view?usp=drive_link)
 
-4) [Create custom AMI](https://drive.google.com/file/d/1WIeFuDiS-aAKV6YOBeZTWX4s6UqHjj1y/view?usp=drive_link)
+4) [Create custom AMI](https://drive.google.com/file/d/1POL4kWxCP77g6dwm3Dfv1kwebPMuN3t2/view?usp=drive_link)
 
-5) [Running instagram uploader](https://drive.google.com/file/d/1R3r4DfkiaK-qkR4DFSQf4NasGaDz2WqI/view?usp=drive_link)
+5) [Running instagram uploader](https://drive.google.com/file/d/1CkPCnrpoUpfEA3V8a0DGgzs4i1n9JCE-/view?usp=drive_link)
 
