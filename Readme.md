@@ -1,3 +1,7 @@
+# About
+Automatic account creation and video upload on Youtube and Instagram.
+**Note:** This project is strictly for academic and research purposes. It is not intended for commercial use or resale of any kind.
+
 # Installation
 1. Download and Install Anaconda - [Download page](https://www.anaconda.com/download), [Guide video](https://www.youtube.com/watch?v=Qve5JTd1OSA&ab_channel=GeekyScript)
 
